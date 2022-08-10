@@ -6,7 +6,10 @@
 
 (define-test-suite pruebas
   (test-case "area-circle"
-    (check-eqv? (area-circle 5) 78.5))
+    (check-eqv? (area-circle 5) 78.5)
+    (check-eqv? (area-circle 5.5) 94.985)
+    (check-eqv? (area-circle 0) 0)
+    (check-eqv? (area-circle -3) -1))
   
   (test-case "circle-properties"
     (check-within (circle-properties 5) '(78.5 31.4) 0.001))
