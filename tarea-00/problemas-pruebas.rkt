@@ -20,7 +20,12 @@
     (check-within (circle-properties -1)   '(-1 -1) 0.001))
 
   (test-case "rectangle-properties"
-    (check-equal? (rectangle-properties '(2 4)) '(8 12)))
+    (check-within (rectangle-properties '(2 4)) '(8 12) 0.001)
+    (check-within (rectangle-properties '(2.5 4.5)) '(11.25 14)0.001)
+    (check-within (rectangle-properties '(5/2 9/2)) '(11.25 14)0.001)
+    (check-within (rectangle-properties '(0 0)) '(0 0) 0.001)
+    (check-eqv? (rectangle-properties '(2 -4)) -1)
+    (check-eqv? (rectangle-properties '(-2 4)) -1))
   
   (test-case "find-needle"
     (check-eqv? (find-needle '(hay needle hay)) 1)
