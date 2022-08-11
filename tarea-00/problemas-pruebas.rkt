@@ -8,6 +8,7 @@
   (test-case "area-circle"
     (check-eqv? (area-circle 5) 78.5)
     (check-eqv? (area-circle 5.5) 94.985)
+    (check-eqv? (area-circle 11/2) 94.985)
     (check-eqv? (area-circle 0) 0)
     (check-eqv? (area-circle -3) -1))
   
