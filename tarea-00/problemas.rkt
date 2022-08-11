@@ -54,6 +54,8 @@
 ;; 9.
 (define another-add
   (lambda (n m)
-    null))
+    (if (zero? n)
+	m
+	(add1 (another-add (sub1 n) m)))))
 
 (provide (all-defined-out))
