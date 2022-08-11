@@ -30,6 +30,7 @@
   (test-case "find-needle"
     (check-eqv? (find-needle '(hay needle hay)) 1)
     (check-eqv? (find-needle '(hay hay hay)) -1)
+    (check-eqv? (find-needle '()) -1)
     (check-eqv? (find-needle '(needle needle hay)) 0))
   
   (test-case "abs"
@@ -37,7 +38,8 @@
     (check-eqv? (abs -2) 2))
   
   (test-case "inclis1"
-    (check-equal? (inclis1 '(1 2 3)) '(2 3 4)))
+    (check-equal? (inclis1 '(1 2 3)) '(2 3 4))
+    (check-equal? (inclis1 '()) '()))
   
   (test-case "even?"
     (check-equal? (map even? '(1 2 3 4 5 6)) '(#f #t #f #t #f #t))
