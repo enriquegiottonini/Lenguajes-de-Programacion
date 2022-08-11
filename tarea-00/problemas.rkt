@@ -47,7 +47,9 @@
 
 ;; 8.
 (define (even? x)
-  null)
+  (cond [(< x 0) #f] 
+     	[(= x 0) #t]
+      	[else (not (even? (- x 1)))]))
 
 ;; 9.
 (define another-add

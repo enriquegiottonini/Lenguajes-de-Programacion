@@ -40,7 +40,9 @@
     (check-equal? (inclis1 '(1 2 3)) '(2 3 4)))
   
   (test-case "even?"
-    (check-equal? (map even? '(1 2 3 4 5 6)) '(#f #t #f #t #f #t)))
+    (check-equal? (map even? '(1 2 3 4 5 6)) '(#f #t #f #t #f #t))
+    (check-equal? (even? -5) #f)
+    (check-equal? (even? 0) #t))
   
   (test-case "another-add"
     (check-eqv? (another-add 10 5) 15)))
