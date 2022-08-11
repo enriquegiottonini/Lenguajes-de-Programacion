@@ -37,11 +37,13 @@
 
 ;; 6.
 (define (abs x)
-  null)
+  (if (< x 0)
+      (- x)
+      x))
 
 ;; 7.
 (define (inclis1 ls)
-  null)
+  (map (lambda (x) (+ x 1)) ls))
 
 ;; 8.
 (define (even? x)

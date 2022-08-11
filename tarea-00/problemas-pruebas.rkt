@@ -14,16 +14,16 @@
   
   (test-case "circle-properties"
     (check-within (circle-properties 5)   '(78.5 31.4) 0.001)
-    (check-within (circle-properties 5.5) '(94.985 34.54) 0.001)
-    (check-within (circle-properties 11/2) '(94.985 34.54) 0.001)
-    (check-within (circle-properties 0)   '(0 0) 0.001)
-    (check-within (circle-properties -1)   '(-1 -1) 0.001))
+    (check-equal? (circle-properties 5.5) '(94.985 34.54))
+    (check-equal? (circle-properties 11/2) '(94.985 34.54))
+    (check-equal? (circle-properties 0)   '(0 0))
+    (check-equal? (circle-properties -1)   '(-1 -1)))
 
   (test-case "rectangle-properties"
-    (check-within (rectangle-properties '(2 4)) '(8 12) 0.001)
-    (check-within (rectangle-properties '(2.5 4.5)) '(11.25 14)0.001)
-    (check-within (rectangle-properties '(5/2 9/2)) '(11.25 14)0.001)
-    (check-within (rectangle-properties '(0 0)) '(0 0) 0.001)
+    (check-equal? (rectangle-properties '(2 4)) '(8 12) 0.001)
+    (check-equal? (rectangle-properties '(2.5 4.5)) '(11.25 14.0))
+    (check-equal? (rectangle-properties '(5/2 9/2)) '(45/4 14))
+    (check-equal?  (rectangle-properties '(0 0)) '(0 0))
     (check-eqv? (rectangle-properties '(2 -4)) -1)
     (check-eqv? (rectangle-properties '(-2 4)) -1))
   
