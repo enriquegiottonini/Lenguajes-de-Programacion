@@ -43,7 +43,9 @@
 
 ;; 7.
 (define (inclis1 ls)
-  (map (lambda (x) (+ x 1)) ls))
+  (if (empty? ls)
+      (list )
+      (map (lambda (x) (+ x 1)) ls)))
 
 ;; 8.
 (define (even? x)
