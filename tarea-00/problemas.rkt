@@ -29,7 +29,11 @@
 
 ;; 5.
 (define (find-needle ls)
-  null)
+  (define (find-needle-iter ls counter)
+    (cond [(empty? ls) -1]
+	  [(equal? (first ls) 'needle) counter]
+	  [else (find-needle-iter (rest ls) (+ counter 1))]))
+  (find-needle-iter ls 0))
 
 ;; 6.
 (define (abs x)

@@ -29,7 +29,8 @@
   
   (test-case "find-needle"
     (check-eqv? (find-needle '(hay needle hay)) 1)
-    (check-eqv? (find-needle '(hay hay hay)) -1))
+    (check-eqv? (find-needle '(hay hay hay)) -1)
+    (check-eqv? (find-needle '(needle needle hay)) 0))
   
   (test-case "abs"
     (check-eqv? (abs 3) 3)
