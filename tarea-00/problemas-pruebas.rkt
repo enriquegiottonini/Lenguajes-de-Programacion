@@ -13,8 +13,12 @@
     (check-eqv? (area-circle -3) -1))
   
   (test-case "circle-properties"
-    (check-within (circle-properties 5) '(78.5 31.4) 0.001))
-  
+    (check-within (circle-properties 5)   '(78.5 31.4) 0.001)
+    (check-within (circle-properties 5.5) '(94.985 34.54) 0.001)
+    (check-within (circle-properties 11/2) '(94.985 34.54) 0.001)
+    (check-within (circle-properties 0)   '(0 0) 0.001)
+    (check-within (circle-properties -1)   '(-1 -1) 0.001))
+
   (test-case "rectangle-properties"
     (check-equal? (rectangle-properties '(2 4)) '(8 12)))
   

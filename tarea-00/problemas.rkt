@@ -11,8 +11,12 @@
 
 ;; 3.
 (define (circle-properties r)
- (list (area-circle r)
-       (* 2 (* pi r))))
+  (define (perimeter-circle r)
+    (if (< r 0)
+	-1
+	(* 2 (* pi r))))
+  (list (area-circle r)
+	(perimeter-circle r)))
 
 ;; 4.
 (define (rectangle-properties rec)
