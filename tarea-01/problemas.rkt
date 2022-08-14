@@ -32,7 +32,12 @@
 	    (cons (car lst) (remv-1st sym (rest lst)))))))
 
 ;; 4 
-;; map		:
-;; usage	:
+;; map		: (procedure, list) -> list
+(define map
+  (lambda (proc lst)
+    (if (empty? lst)
+	lst
+	(cons (proc (car lst)) (map proc (cdr lst))))))
+
 
 (provide (all-defined-out))

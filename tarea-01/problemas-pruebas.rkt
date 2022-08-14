@@ -32,12 +32,16 @@
                   '(x z y x))
     (check-equal? (remv-1st 'z '(a b c))
                   '(a b c)))
-  
- #|(test-case "map"
+
+  (test-case "map"
     (check-equal? (map sub1 '(1 2 3 4))
-                  '(0 1 2 3)))
+                  '(0 1 2 3))
+    (check-equal? (map sub1 '())
+		  '())
+    (check-equal? (map (lambda (x) (* x x)) '(1 2 3))
+		  '(1 4 9)))
   
-  (test-case "filter"
+  #|(test-case "filter"
     (check-equal? (filter even? '(1 2 3 4 5 6))
                   '(2 4 6)))
   
