@@ -7,13 +7,15 @@
 (define-test-suite pruebas
   (test-case "countdown"
     (check-equal? (countdown 5)
-                  '(5 4 3 2 1 0)))
+                  '(5 4 3 2 1 0))
+    (check-equal? (countdown 0)
+		  '(0)))
   
   (test-case "insertL"
     (check-equal? (insertL 'x 'y '(x z z x y x))
                   '(y x z z y x y y x)))
   
-  (test-case "remv-1st"
+  #|(test-case "remv-1st"
     (check-equal? (remv-1st 'x '(x y z x))
                   '(y z x))
     (check-equal? (remv-1st 'y '(x y z y x))
@@ -108,6 +110,6 @@
   (test-case "snowball"
     (let ((ns (make-base-namespace)))
       (check-equal? (eval quine ns) quine)
-      (check-equal? (eval (eval quine ns) ns) quine))))
+      (check-equal? (eval (eval quine ns) ns) quine)))|#)
 
 (run-tests pruebas 'verbose)
