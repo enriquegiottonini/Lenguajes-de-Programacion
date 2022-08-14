@@ -39,5 +39,13 @@
 	lst
 	(cons (proc (car lst)) (map proc (cdr lst))))))
 
-
+;; 5
+;; filter	: (procedure, list) -> list
+(define filter
+  (lambda (proc lst)
+    (if (empty? lst)
+	lst
+	(if (proc (car lst))
+	    (cons (car lst) (filter proc (cdr lst)))
+	    (filter proc (cdr lst))))))
 (provide (all-defined-out))

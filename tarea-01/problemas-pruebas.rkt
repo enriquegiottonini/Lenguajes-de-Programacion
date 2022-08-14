@@ -41,11 +41,13 @@
     (check-equal? (map (lambda (x) (* x x)) '(1 2 3))
 		  '(1 4 9)))
   
-  #|(test-case "filter"
-    (check-equal? (filter even? '(1 2 3 4 5 6))
+  (test-case "filter"
+   (check-equal? (filter even? '())
+		 '())
+   (check-equal? (filter even? '(1 2 3 4 5 6))
                   '(2 4 6)))
   
-  (test-case "zip"
+  #|(test-case "zip"
     (check-equal? (zip '(1 2 3) '(a b c))
                   '((1 . a) (2 . b) (3 . c)))
     (check-equal? (zip '(1 2 3 4 5 6) '(a b c))
