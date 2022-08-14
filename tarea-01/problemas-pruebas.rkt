@@ -60,13 +60,19 @@
     (check-eqv? (list-index-ofv 'x '(y z x x)) 2)
     (check-exn exn:fail? (thunk  (list-index-ofv 'x '(y y)))))
   
-  #|(test-case "append"
+  (test-case "append"
+    (check-equal? (append '() '())
+		  '())
+    (check-equal? (append '() '(1 2 3))
+		  '(1 2 3))
+    (check-equal? (append '(1 2 3) '())
+		  '(1 2 3))
     (check-equal? (append '(42 120) '(1 2 3))
                   '(42 120 1 2 3))
     (check-equal? (append '(a b c) '(cat dog))
                   '(a b c cat dog)))
   
-  (test-case "reverse"
+  #|(test-case "reverse"
     (check-equal? (reverse '(a 3 x))
                   '(x 3 a)))
   

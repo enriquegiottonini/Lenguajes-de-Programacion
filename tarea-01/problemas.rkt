@@ -70,4 +70,12 @@
 	    0
 	    (+ 1 (list-index-ofv sym (cdr lst)))))))
 
+;; 8
+;; append	: (list, list) -> list
+(define append
+  (lambda (lst1 lst2)
+    (if (empty? lst1)
+	lst2
+	(cons (car lst1) (append (cdr lst1) lst2)))))
+
 (provide (all-defined-out))
