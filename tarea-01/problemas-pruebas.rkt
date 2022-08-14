@@ -23,7 +23,9 @@
     (check-equal? (insertL 'x 'y '(x z z x y x))
                   '(y x z z y x y y x)))
   
-  #|(test-case "remv-1st"
+  (test-case "remv-1st"
+    (check-equal? (remv-1st 'x '())
+		  '())
     (check-equal? (remv-1st 'x '(x y z x))
                   '(y z x))
     (check-equal? (remv-1st 'y '(x y z y x))
@@ -31,7 +33,7 @@
     (check-equal? (remv-1st 'z '(a b c))
                   '(a b c)))
   
-  (test-case "map"
+ #|(test-case "map"
     (check-equal? (map sub1 '(1 2 3 4))
                   '(0 1 2 3)))
   
