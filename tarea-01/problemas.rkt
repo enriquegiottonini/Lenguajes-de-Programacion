@@ -60,4 +60,14 @@
 		      (zip (cdr lst1)
 			   (cdr lst2)))])))
 
+;; 7
+;; list-index-ofv : (symbol, list) -> int
+(define list-index-ofv
+  (lambda (sym lst)
+    (if (empty? lst)
+	(error "index out of bounds.")
+	(if (eqv? sym (car lst))
+	    0
+	    (+ 1 (list-index-ofv sym (cdr lst)))))))
+
 (provide (all-defined-out))

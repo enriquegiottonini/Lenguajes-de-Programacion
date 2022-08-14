@@ -55,11 +55,12 @@
     (check-equal? (zip '(1 2 3) '(a b c d e f))
                   '((1 . a) (2 . b) (3 . c))))
   
-  #|(test-case "list-index-ofv"
+  (test-case "list-index-ofv"
     (check-eqv? (list-index-ofv 'x '(x y z x x)) 0)
-    (check-eqv? (list-index-ofv 'x '(y z x x)) 2))
+    (check-eqv? (list-index-ofv 'x '(y z x x)) 2)
+    (check-exn exn:fail? (thunk  (list-index-ofv 'x '(y y)))))
   
-  (test-case "append"
+  #|(test-case "append"
     (check-equal? (append '(42 120) '(1 2 3))
                   '(42 120 1 2 3))
     (check-equal? (append '(a b c) '(cat dog))
