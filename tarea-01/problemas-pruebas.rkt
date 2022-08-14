@@ -72,11 +72,18 @@
     (check-equal? (append '(a b c) '(cat dog))
                   '(a b c cat dog)))
   
-  #|(test-case "reverse"
+  (test-case "reverse"
+    (check-equal? (reverse '())
+		  '())
+    (check-equal? (reverse '(1))
+		  '(1))
+    (check-equal? (reverse '(1 2))
+		  '(2 1))
     (check-equal? (reverse '(a 3 x))
                   '(x 3 a)))
+    
   
-  (test-case "repeat"
+  #|(test-case "repeat"
     (check-equal? (repeat '(4 8 11) 4)
                   '(4 8 11 4 8 11 4 8 11 4 8 11)))
   

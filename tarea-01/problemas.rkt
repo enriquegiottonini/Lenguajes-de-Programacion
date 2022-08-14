@@ -78,4 +78,12 @@
 	lst2
 	(cons (car lst1) (append (cdr lst1) lst2)))))
 
+;; 9
+;; reverse	: list -> list
+(define reverse
+  (lambda (lst)
+    (if (empty? lst)
+	lst
+	(append (reverse (cdr lst)) (cons (car lst) '())))))
+
 (provide (all-defined-out))
