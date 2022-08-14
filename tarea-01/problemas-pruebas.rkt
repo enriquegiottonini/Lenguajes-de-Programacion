@@ -12,6 +12,14 @@
 		  '(0)))
   
   (test-case "insertL"
+    (check-equal? (insertL 'x 'y '())
+		  '())
+    (check-equal? (insertL 'x 'y '(x))
+		  '(y x))
+    (check-equal? (insertL 'x 'y '(x x))
+		  '(y x y x))
+    (check-equal? (insertL 'x 'y '(a b c d y))
+		  '(a b c d y))
     (check-equal? (insertL 'x 'y '(x z z x y x))
                   '(y x z z y x y y x)))
   
