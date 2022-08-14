@@ -86,4 +86,12 @@
 	lst
 	(append (reverse (cdr lst)) (cons (car lst) '())))))
 
+; 10
+;; repeat	: (list, int) -> list
+(define repeat
+  (lambda (lst ditto)
+    (if (zero? ditto)
+	'()
+	(append lst (repeat lst (- ditto 1))))))
+
 (provide (all-defined-out))

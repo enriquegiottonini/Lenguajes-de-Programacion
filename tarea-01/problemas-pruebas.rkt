@@ -83,11 +83,15 @@
                   '(x 3 a)))
     
   
-  #|(test-case "repeat"
+  (test-case "repeat"
+    (check-equal? (repeat '() 10)
+		  '())
+    (check-equal? (repeat '(1 2) 0)
+		  '())
     (check-equal? (repeat '(4 8 11) 4)
                   '(4 8 11 4 8 11 4 8 11 4 8 11)))
   
-  (test-case "same-lists*"
+  #|(test-case "same-lists*"
     (check-true (same-lists* '() '()))
     (check-true (same-lists* '(1 2 3 4 5) '(1 2 3 4 5)))
     (check-false (same-lists* '(1 2 3 4) '(1 2 3 4 5)))
