@@ -47,7 +47,7 @@
    (check-equal? (filter even? '(1 2 3 4 5 6))
                   '(2 4 6)))
   
-  #|(test-case "zip"
+  (test-case "zip"
     (check-equal? (zip '(1 2 3) '(a b c))
                   '((1 . a) (2 . b) (3 . c)))
     (check-equal? (zip '(1 2 3 4 5 6) '(a b c))
@@ -55,7 +55,7 @@
     (check-equal? (zip '(1 2 3) '(a b c d e f))
                   '((1 . a) (2 . b) (3 . c))))
   
-  (test-case "list-index-ofv"
+  #|(test-case "list-index-ofv"
     (check-eqv? (list-index-ofv 'x '(x y z x x)) 0)
     (check-eqv? (list-index-ofv 'x '(y z x x)) 2))
   

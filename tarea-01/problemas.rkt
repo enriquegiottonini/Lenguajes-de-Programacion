@@ -48,4 +48,16 @@
 	(if (proc (car lst))
 	    (cons (car lst) (filter proc (cdr lst)))
 	    (filter proc (cdr lst))))))
+
+;; 6
+;; zip		: (list, list) -> list
+(define zip
+  (lambda (lst1 lst2)
+    (cond [(empty? lst1) '()]
+	  [(empty? lst2) '()]
+	  [else (cons (cons (car lst1)
+			    (car lst2))
+		      (zip (cdr lst1)
+			   (cdr lst2)))])))
+
 (provide (all-defined-out))
