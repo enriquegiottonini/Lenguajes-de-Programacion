@@ -91,14 +91,14 @@
     (check-equal? (repeat '(4 8 11) 4)
                   '(4 8 11 4 8 11 4 8 11 4 8 11)))
   
-  #|(test-case "same-lists*"
+  (test-case "same-lists*"
     (check-true (same-lists* '() '()))
     (check-true (same-lists* '(1 2 3 4 5) '(1 2 3 4 5)))
     (check-false (same-lists* '(1 2 3 4) '(1 2 3 4 5)))
     (check-false (same-lists* '(a (b c) d) '(a (b) c d)))
     (check-true (same-lists* '((a) b (c d) d) '((a) b (c d) d))))
   
-  (test-case "binary->natural"
+  #|(test-case "binary->natural"
     (check-eqv? (binary->natural '()) 0)
     (check-eqv? (binary->natural '(0 0 1)) 4)
     (check-eqv? (binary->natural '(0 0 1 1)) 12)

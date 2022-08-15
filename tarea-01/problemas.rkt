@@ -94,4 +94,21 @@
 	'()
 	(append lst (repeat lst (- ditto 1))))))
 
+;; 11
+;; same-lists*	: (list, list) -> Boolean
+(define same-lists*
+  (lambda (lst1 lst2)
+      (if (and (empty? lst1) (empty? lst2))
+	  #t
+	  (if (or (empty? lst1) (empty? lst2))
+	      #f
+	      (let* ([head1 (car lst1)]
+		     [head2 (car lst2)])
+		(cond 
+		  [(or (and (pair? head1) (not (pair? head2))); head type disparity case
+		   (and (not (pair? head1)) (pair? head2))) #f]
+		  [(pair? head1) (and (same-lists* head1 head2)
+				  (same-lists* (rest lst1) (rest lst2)))]
+		  [else (and (eqv? head1 head2)
+			 (same-lists* (rest lst1) (rest lst2)))]))))))
 (provide (all-defined-out))
