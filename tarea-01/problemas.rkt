@@ -137,4 +137,30 @@
       [(zero? dividend) 0]
       [else  (+ 1 (div (- dividend divisor) divisor))])))
 
+;; 15
+;; append-map	: (procedure, list) -> list
+;;		   procedure : 
+(define append-map
+  (lambda (proc lst)
+    (if (empty? lst)
+	lst
+	(append (proc (car lst))
+	        (append-map proc (rest lst))))))
+
+;; 16
+;; set-difference	: (list, list) -> list
+(define set-difference
+  (lambda (lst1 lst2)
+    (if (empty? lst1)
+	'()
+	(if (in-L? (car lst1) lst2)
+	    (set-difference (rest lst1) lst2)
+	    (cons (car lst1) (set-difference (rest lst1) lst2))))))
+
+(define (in-L? elmt lst)
+    (if (empty? lst)
+	#f
+	(or (eqv? elmt (car lst))
+	    (in-L? elmt (rest lst)))))
+
 (provide (all-defined-out))

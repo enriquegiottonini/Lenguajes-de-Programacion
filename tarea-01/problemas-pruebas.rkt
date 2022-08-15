@@ -111,15 +111,21 @@
     (check-eqv? (div 36 6) 6)
     (check-exn exn:fail? (thunk (div 10 6))))
   
-  #|(test-case "append-map"
+  (test-case "append-map"
     (check-equal? (append-map countdown (countdown 5))
                   '(5 4 3 2 1 0 4 3 2 1 0 3 2 1 0 2 1 0 1 0 0)))
-  
+
   (test-case "set-difference"
     (check-equal? (set-difference '(1 2 3 4 5) '(2 6 4 8))
-                  '(1 3 5)))
+                  '(1 3 5))
+    (check-equal? (set-difference '(1 2 3) '())
+		  '(1 2 3))
+    (check-equal? (set-difference '() '(1 2 3))
+		  '())
+    (check-equal? (set-difference '(1 2 3) '(4 5 6))
+		  '(1 2 3)))
   
-  (test-case "foldr"
+  #|(test-case "foldr"
     (check-equal? (foldr cons '() '(1 2 3 4))
                   '(1 2 3 4))
     (check-eqv? (foldr + 0 '(1 2 3 4))
