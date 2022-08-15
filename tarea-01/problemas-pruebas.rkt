@@ -125,7 +125,7 @@
     (check-equal? (set-difference '(1 2 3) '(4 5 6))
 		  '(1 2 3)))
   
-  #|(test-case "foldr"
+  (test-case "foldr"
     (check-equal? (foldr cons '() '(1 2 3 4))
                   '(1 2 3 4))
     (check-eqv? (foldr + 0 '(1 2 3 4))
@@ -133,7 +133,7 @@
     (check-eqv? (foldr * 1 '(1 2 3 4))
                 24))
   
-  (test-case "powerset"
+  #|(test-case "powerset"
     (check-equal? (powerset '(3 2 1))
                   '((3 2 1) (3 2) (3 1) (3) (2 1) (2) (1) ()))
     (check-equal? (powerset '())

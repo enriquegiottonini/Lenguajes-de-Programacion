@@ -156,11 +156,19 @@
 	(if (in-L? (car lst1) lst2)
 	    (set-difference (rest lst1) lst2)
 	    (cons (car lst1) (set-difference (rest lst1) lst2))))))
-
+;; set-difference:helper
 (define (in-L? elmt lst)
     (if (empty? lst)
 	#f
 	(or (eqv? elmt (car lst))
 	    (in-L? elmt (rest lst)))))
+
+;; 17
+;; foldr	: (operator ? list) -> ?
+(define foldr
+  (lambda (op acc lst)
+    (if (empty? lst)
+	acc
+	(op (car lst) (foldr op acc (rest lst))))))
 
 (provide (all-defined-out))
