@@ -111,4 +111,22 @@
 				  (same-lists* (rest lst1) (rest lst2)))]
 		  [else (and (eqv? head1 head2)
 			 (same-lists* (rest lst1) (rest lst2)))]))))))
+#|
+   12 
+   ((w x) (z))
+ = ((w (x . ())) (z . ()))
+ = ((w . (x . ())) . (z . ()))
+|#
+
+;; 13
+;; binary->natural : list -> int
+(define (binary->natural lst)
+  (define (binary->natural:helper lst count)
+    (if (empty? lst)
+	0
+	(+ (* (car lst) (expt 2 count))
+	   (binary->natural:helper (cdr lst) (+ count 1)))))
+  (binary->natural:helper lst 0))
+
+
 (provide (all-defined-out))

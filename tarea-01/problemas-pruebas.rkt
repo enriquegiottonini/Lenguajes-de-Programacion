@@ -98,7 +98,7 @@
     (check-false (same-lists* '(a (b c) d) '(a (b) c d)))
     (check-true (same-lists* '((a) b (c d) d) '((a) b (c d) d))))
   
-  #|(test-case "binary->natural"
+  (test-case "binary->natural"
     (check-eqv? (binary->natural '()) 0)
     (check-eqv? (binary->natural '(0 0 1)) 4)
     (check-eqv? (binary->natural '(0 0 1 1)) 12)
@@ -106,7 +106,7 @@
     (check-eqv? (binary->natural '(1 0 1 0 1)) 21)
     (check-eqv? (binary->natural '(1 1 1 1 1 1 1 1 1 1 1 1 1)) 8191))
   
-  (test-case "div"
+  #|(test-case "div"
     (check-eqv? (div 25 5) 5)
     (check-eqv? (div 36 6) 6))
   
