@@ -128,5 +128,13 @@
 	   (binary->natural:helper (cdr lst) (+ count 1)))))
   (binary->natural:helper lst 0))
 
+;; 14
+;; div	: (int, int) -> int
+(define div
+  (lambda (dividend divisor)
+    (cond
+      [(< dividend 0)(error "No lo divide completamente")]
+      [(zero? dividend) 0]
+      [else  (+ 1 (div (- dividend divisor) divisor))])))
 
 (provide (all-defined-out))

@@ -106,11 +106,12 @@
     (check-eqv? (binary->natural '(1 0 1 0 1)) 21)
     (check-eqv? (binary->natural '(1 1 1 1 1 1 1 1 1 1 1 1 1)) 8191))
   
-  #|(test-case "div"
+  (test-case "div"
     (check-eqv? (div 25 5) 5)
-    (check-eqv? (div 36 6) 6))
+    (check-eqv? (div 36 6) 6)
+    (check-exn exn:fail? (thunk (div 10 6))))
   
-  (test-case "append-map"
+  #|(test-case "append-map"
     (check-equal? (append-map countdown (countdown 5))
                   '(5 4 3 2 1 0 4 3 2 1 0 3 2 1 0 2 1 0 1 0 0)))
   
