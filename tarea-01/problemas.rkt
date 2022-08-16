@@ -171,4 +171,23 @@
 	acc
 	(op (car lst) (foldr op acc (rest lst))))))
 
+;; 18
+;; powerset	: list -> list
+(define powerset
+  (lambda (lst)
+    (if (empty? lst)
+	(cons '() '())
+	(append (add-head (car lst) (powerset (rest lst)))
+	      (powerset (rest lst))))))
+
+;; add-head	: (symbol, list) -> list
+;; usage (add-head elmt lst) = given a list lst of lists, add elmt as a head of each element of lst. 
+(define add-head
+  (lambda (elmt lst)
+    (if (empty? lst)
+	'()
+	(cons   (cons elmt (car lst))
+		(add-head elmt (cdr lst))))))
+
+
 (provide (all-defined-out))
