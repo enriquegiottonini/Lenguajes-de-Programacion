@@ -143,12 +143,12 @@
     (check-equal? (cartesian-product '((5 4) (3 2 1)))
                   '((5 3) (5 2) (5 1) (4 3) (4 2) (4 1))))
   
-  #|(test-case "snowball"
+  (test-case "snowball"
     (check-eqv? (snowball 12) 1)
     (check-eqv? (snowball 120) 1)
     (check-eqv? (snowball 9999) 1))
   
-  (test-case "snowball"
+  #|(test-case "snowball"
     (let ((ns (make-base-namespace)))
       (check-equal? (eval quine ns) quine)
       (check-equal? (eval (eval quine ns) ns) quine)))|#)
