@@ -181,13 +181,32 @@
 	      (powerset (rest lst))))))
 
 ;; add-head	: (symbol, list) -> list
-;; usage (add-head elmt lst) = given a list lst of lists, add elmt as a head of each element of lst. 
+;; usage (add-head elmt lst) = given a list lst of lists, add elmt as a head to each element of lst. 
 (define add-head
   (lambda (elmt lst)
     (if (empty? lst)
 	'()
-	(cons   (cons elmt (car lst))
-		(add-head elmt (cdr lst))))))
+	(cons (cons elmt (car lst))
+	      (add-head elmt (cdr lst))))))
 
+;; 19
+;; cartesian-product	: list -> lista
+;; solo pude hacerlo cuando n=2.
+(define cartesian-product
+  (lambda (lst)
+    (if (= 2 (length lst))
+	(cross (car lst) (car (cdr lst)))
+	'())))
+
+
+;; A x B = {(a, b) : a in A, b in B}
+(define (cross A B)
+  (if (or (empty? A)
+	  (empty? B))
+	 '() 
+	  (append (map (lambda (elmt) 
+			 (list (car A) elmt))
+		       B)
+		  (cross (cdr A) B))))
 
 (provide (all-defined-out))
