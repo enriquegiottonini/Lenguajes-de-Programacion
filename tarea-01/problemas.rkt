@@ -208,6 +208,67 @@
 
 ;; 20
 ;; 20.1
+(define (insertL-fr x y lst)
+  (define (inserts-if head acc)
+    (if (eq? x head)
+	(cons y (cons head acc))
+	(cons head acc)))
+  (foldr inserts-if '() lst))
+
+;; 20.2
+(define (filter-fr predicate lst)
+  (define (filter head acc)
+    (if (predicate head)
+	(cons head acc)
+	acc))
+  (foldr filter '() lst))
+
+;; 20.3
+(define (map-fr proc lst)
+  (define (transform head acc)
+    (cons (proc head) acc))
+  (foldr transform '() lst))
+
+;; 20.4
+(define (append-fr lst1 lst2)
+  (define (unite head acc)
+	(cons head acc))
+  (foldr unite lst2 lst1))
+
+;; 20.5
+(define (reverse-fr lst)
+  (define (add head acc)
+	(append acc (list head)))
+  (foldr add '() lst))
+
+;; 20.6
+(define (binary->natural-fr lst)
+  (define (binary-sum head acc)
+    (if (empty? head)
+	head
+	(+ head (* 2 acc))))
+  (foldr binary-sum 0 lst))
+
+;; 20.7
+(define (append-map-fr proc lst)
+  (define (append-map head acc)
+    (append (proc head) acc))
+  (foldr append-map '() lst))
+
+;; 20.8
+(define (set-difference-fr lst1 lst2)
+  (define (rmv head acc)
+    (if (member head lst2)
+	acc
+	(cons head acc)))
+  (foldr rmv '() lst1))
+
+;; 20.9
+(define (powerset-fr lst)
+  (define (powerset head acc)
+    (append (map (lambda (ls) (cons head ls)) acc)
+	    acc))
+  (foldr powerset '(()) lst))
 
 ;; 21
 (define snowball
