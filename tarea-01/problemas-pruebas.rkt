@@ -152,11 +152,87 @@
     (check-equal? (cartesian-product '((a b c) (1 2) ()))
 		  '()))
 
-  
   (test-case "snowball"
     (check-eqv? (snowball 12) 1)
     (check-eqv? (snowball 120) 1)
     (check-eqv? (snowball 9999) 1))
+
+  (test-case "insertL-fr"
+    (check-equal? (insertL 'x 'y '())
+		  '())
+    (check-equal? (insertL 'x 'y '(x))
+		  '(y x))
+    (check-equal? (insertL 'x 'y '(x x))
+		  '(y x y x))
+    (check-equal? (insertL 'x 'y '(a b c d y))
+		  '(a b c d y))
+    (check-equal? (insertL 'x 'y '(x z z x y x))
+                  '(y x z z y x y y x)))
+
+  (test-case "filter-fr"
+   (check-equal? (filter even? '())
+		 '())
+   (check-equal? (filter even? '(1 2 3 4 5 6))
+                  '(2 4 6)))
+
+ (test-case "map-fr"
+    (check-equal? (map sub1 '(1 2 3 4))
+                  '(0 1 2 3))
+    (check-equal? (map sub1 '())
+		  '())
+    (check-equal? (map (lambda (x) (* x x)) '(1 2 3))
+		  '(1 4 9)))
+
+ (test-case "append-fr"
+    (check-equal? (append '() '())
+		  '())
+    (check-equal? (append '() '(1 2 3))
+		  '(1 2 3))
+    (check-equal? (append '(1 2 3) '())
+		  '(1 2 3))
+    (check-equal? (append '(42 120) '(1 2 3))
+                  '(42 120 1 2 3))
+    (check-equal? (append '(a b c) '(cat dog))
+                  '(a b c cat dog)))
+  
+  (test-case "reverse-fr"
+    (check-equal? (reverse '())
+		  '())
+    (check-equal? (reverse '(1))
+		  '(1))
+    (check-equal? (reverse '(1 2))
+		  '(2 1))
+    (check-equal? (reverse '(a 3 x))
+                  '(x 3 a)))
+
+  (test-case "binary->natural-fr"
+    (check-eqv? (binary->natural '()) 0)
+    (check-eqv? (binary->natural '(0 0 1)) 4)
+    (check-eqv? (binary->natural '(0 0 1 1)) 12)
+    (check-eqv? (binary->natural '(1 1 1 1)) 15)
+    (check-eqv? (binary->natural '(1 0 1 0 1)) 21)
+    (check-eqv? (binary->natural '(1 1 1 1 1 1 1 1 1 1 1 1 1)) 8191))
+
+  (test-case "append-map-fr"
+    (check-equal? (append-map countdown (countdown 5))
+                  '(5 4 3 2 1 0 4 3 2 1 0 3 2 1 0 2 1 0 1 0 0)))
+
+  (test-case "set-difference-fr"
+    (check-equal? (set-difference '(1 2 3 4 5) '(2 6 4 8))
+                  '(1 3 5))
+    (check-equal? (set-difference '(1 2 3) '())
+		  '(1 2 3))
+    (check-equal? (set-difference '() '(1 2 3))
+		  '())
+    (check-equal? (set-difference '(1 2 3) '(4 5 6))
+		  '(1 2 3)))
+
+  (test-case "powerset"
+    (check-equal? (powerset '(3 2 1))
+                  '((3 2 1) (3 2) (3 1) (3) (2 1) (2) (1) ()))
+    (check-equal? (powerset '())
+                  '(())))
+  
   
   #|(test-case "snowball"
     (let ((ns (make-base-namespace)))
