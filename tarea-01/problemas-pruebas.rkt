@@ -230,11 +230,11 @@
   (test-case "powerset-fr"
     (check-equal? (powerset-fr '(3 2 1))
                   '((3 2 1) (3 2) (3 1) (3) (2 1) (2) (1) ()))
-    (check-equal? (powerset '())
+    (check-equal? (powerset-fr '())
                   '(())))
   
   
-  #|(test-case "snowball"
+  #|(test-case "quine"
     (let ((ns (make-base-namespace)))
       (check-equal? (eval quine ns) quine)
       (check-equal? (eval (eval quine ns) ns) quine)))|#)
