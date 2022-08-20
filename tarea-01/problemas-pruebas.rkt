@@ -141,7 +141,17 @@
   
   (test-case "cartesian-product"
     (check-equal? (cartesian-product '((5 4) (3 2 1)))
-                  '((5 3) (5 2) (5 1) (4 3) (4 2) (4 1))))
+                  '((5 3) (5 2) (5 1) (4 3) (4 2) (4 1)))
+    (check-equal? (cartesian-product '((a b c) (1 2) ("foo" "bar" "baz")))
+		  '((a 1 "foo") (a 1 "bar") (a 1 "baz") 
+		    (a 2 "foo") (a 2 "bar") (a 2 "baz")
+		    (b 1 "foo") (b 1 "bar") (b 1 "baz")
+		    (b 2 "foo") (b 2 "bar") (b 2 "baz")
+		    (c 1 "foo") (c 1 "bar") (c 1 "baz")
+		    (c 2 "foo") (c 2 "bar") (c 2 "baz")))
+    (check-equal? (cartesian-product '((a b c) (1 2) ()))
+		  '()))
+
   
   (test-case "snowball"
     (check-eqv? (snowball 12) 1)

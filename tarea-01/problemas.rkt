@@ -190,14 +190,11 @@
 	      (add-head elmt (cdr lst))))))
 
 ;; 19
-;; cartesian-product	: list -> lista
+;; cartesian-product	: list -> list
 ;; solo pude hacerlo cuando n=2.
 (define cartesian-product
   (lambda (lst)
-    (if (= 2 (length lst))
-	(cross (car lst) (car (cdr lst)))
-	'())))
-
+    (foldr cross '(()) lst)))
 
 ;; A x B = {(a, b) : a in A, b in B}
 (define (cross A B)
@@ -205,7 +202,7 @@
 	  (empty? B))
 	 '() 
 	  (append (map (lambda (elmt) 
-			 (list (car A) elmt))
+			 (cons (car A) elmt))
 		       B)
 		  (cross (cdr A) B))))
 
