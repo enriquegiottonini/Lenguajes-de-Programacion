@@ -298,4 +298,6 @@
 	 (error 'error "Invalid value ~s~n" x))))
   (one-case (even-case (odd-case base)))))
 
+(define quine "no lo hice.")
+
 (provide (all-defined-out))

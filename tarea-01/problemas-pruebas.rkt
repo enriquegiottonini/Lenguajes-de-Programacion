@@ -234,9 +234,10 @@
                   '(())))
   
   
-  #|(test-case "quine"
+  (test-case "quine"
     (let ((ns (make-base-namespace)))
+      (check-equal? (string? quine) #f)
       (check-equal? (eval quine ns) quine)
-      (check-equal? (eval (eval quine ns) ns) quine)))|#)
+      (check-equal? (eval (eval quine ns) ns) quine))))
 
 (run-tests pruebas 'verbose)
