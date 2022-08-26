@@ -34,10 +34,10 @@
 ;; - Number
 ;; 1
 (define (interp  [ac : ArithC]) : Number
-  (cond
-    [(numC? ac) (numC-n ac)]
-    [(plusC? ac) (+ (interp (plusC-l ac)) (interp (plusC-r ac)))]
-    [(multC? ac) (* (interp (multC-l ac)) (interp (multC-r ac)))]))
+  (type-case ArithC ac
+    [(numC n) n]
+    [(plusC l r) (+ (interp l) (interp r))]
+    [(multC l r) (* (interp l) (interp r))]))
     
 
 ;; convierte una expresion en lenguaje extendido a
@@ -47,14 +47,14 @@
 ;; - ArithC
 ;; (numC 1)
 (define (desugar [as : ArithS]) : ArithC
-  (cond
-    [(numS? as) (numC (numS-n as))]
-    [(uminusS? as) (multC (numC -1) (desugar (uminusS-e as)))]
-    [(plusS? as) (plusC (desugar (plusS-l as)) (desugar (plusS-r as)))]
-    [(bminusS? as) (plusC (desugar (bminusS-l as)) (multC (numC -1) (desugar (bminusS-r as))))]
-    [(multS? as) (multC (desugar (multS-l as)) (desugar (multS-r as)))]))
+  (type-case ArithS as
+    [(numS n) (numC n)]
+    [(uminusS e) (multC (numC -1) (desugar e))]
+    [(plusS l r) (plusC (desugar l) (desugar r))]
+    [(bminusS l r) (plusC (desugar l) (multC (numC -1) (desugar r)))]
+    [(multS l r) (multC (desugar l) (desugar r))]))
 
-;; convierte una expresion a una expresion
+;; convierte una expresion-S a una expresion
 ;; aritmetica extendida, azucarada.
 ;; ejemplo:
 ;; > (parse `{+ 1 2})
@@ -66,15 +66,21 @@
     [(and (s-exp-list? s) (not (equal? s `{})))
      (let ([lst (s-exp->list s)])
        (cond
-         [(not (s-exp-symbol? (first lst))) (error 'parse "operacion aritmetica no es prefix.")]
+         [(not (s-exp-symbol? (first lst))) (malformed-sexp-err "")]
          [(= (length lst) 2)
           (case (s-exp->symbol (first lst))
-            ['- (uminusS (parse (second lst)))])]
+            ['- (uminusS (parse (second lst)))]
+            [else (malformed-sexp-err "")])]
          [(= (length lst) 3)
           (case (s-exp->symbol (first lst))
             ['+ (plusS (parse (second lst)) (parse (third lst)))]
             ['* (multS (parse (second lst)) (parse (third lst)))]
             ['- (bminusS (parse (second lst)) (parse (third lst)))]
-            [else (error 'parse "no se reconoce el simbolo en la operacion aritmetica.")])]
-         [else (error 'parse "operacion aritmetica malformada.")]))]
-     [else (error 'parse "expresion aritmetica malformada.")]))
+            [else (malformed-sexp-err "")])]
+         [else (malformed-sexp-err "")]))]
+     [else (malformed-sexp-err "")]))
+
+(define (malformed-sexp-err [msg : String])
+  (if (> 0 (string-length msg))
+      (error 'parse msg)
+      (error 'parse "expresion malformada.")))
