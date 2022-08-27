@@ -31,11 +31,7 @@
     (error 'bundle "esperaba un entero positivo exacto (sin decimal), pero recibi ~e" n))
   (unless (not (zero? n))
     (error 'bundle "n no puede ser 0."))
-  (cond
-    [(null? s) null]
-    [else
-     (cons (implode (take s n))
-           (bundle (drop s n) n))]))
+  (map implode (list->chunks s n)))
 
 ;; PROBLEMA 3:
 
