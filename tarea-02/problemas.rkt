@@ -24,12 +24,18 @@
 
 ;; bundle : ListOfUnitStrings -> ListOfStrings
 ;; empaqueta trozos de una lista de cadenas unitarias 's' en cadenas de size 'n'
-(define (bundle lst n)
-  (unless (unit-string-list? lst)
-    (error 'bundle "esperaba una lista de cadenas unitarias, pero recibi ~e" lst))
+(define (bundle s n)
+  (unless (unit-string-list? s)
+    (error 'bundle "esperaba una lista de cadenas unitarias, pero recibi ~e" s))
   (unless (exact-nonnegative-integer? n)
     (error 'bundle "esperaba un entero positivo exacto (sin decimal), pero recibi ~e" n))
-  '())
+  (unless (not (zero? n))
+    (error 'bundle "n no puede ser 0."))
+  (cond
+    [(null? s) null]
+    [else
+     (cons (implode (take s n))
+           (bundle (drop s n) n))]))
 
 ;; PROBLEMA 3:
 
@@ -61,4 +67,21 @@
     [else
      (drop (rest l) (sub1 n))]))
 
-(provide (all-defined-out))
+;; PROBLEMA 6
+
+;; list->chunks : List Number -> List
+(define (list->chunks l n)
+  (unless (list? l)
+    (error 'list->chunks "esperaba una lista, recibi ~e" l))
+  (unless (exact-nonnegative-integer? n)
+    (error 'list->chunks "esperaba un numero natural, recibi ~e" n))
+  (unless (not (zero? n))
+    (error 'list->chunks "los chunks no pueden ser de size 0"))
+  (cond
+    [(null? l) l]
+    [else
+     (cons (apply list (take l n))
+           (list->chunks (drop l n) n))]))
+    
+
+  (provide (all-defined-out))
