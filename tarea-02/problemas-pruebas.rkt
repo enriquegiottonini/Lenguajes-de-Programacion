@@ -51,7 +51,21 @@
      (check-equal? (list->chunks (list 1 2 "ok" (list 9 9)) 2)
                    '( (1 2) ("ok" (9 9) )))
      (check-equal? (list->chunks (list 1 2 "ok" (list 9 9)) 10)
-                   '( (1 2 "ok" (9 9)) ))
-     ))
+                   '( (1 2 "ok" (9 9)) )))
+
+  (test-case "partition"
+    (check-exn exn:fail? (thunk (partition "abc" -1)))
+    (check-exn exn:fail? (thunk (partition "abc" 1.5)))
+    (check-exn exn:fail? (thunk (partition (list "ab" "bc" "cd") 1)))
+    (check-exn exn:fail? (thunk (partition "abc" 0)))
+    (check-equal? (partition "abcdefg" 3)
+                  (bundle (explode "abcdefg") 3))       
+    (check-equal? (partition "abc" 5)
+                  (bundle (explode "abc") 5))
+    (check-equal? (partition  "" 9)
+                  '(""))
+    (check-equal? (partition "abcdefg" 1)
+                  (list "a" "b" "c" "d" "e" "f" "g")))
+  )
 
 (run-tests pruebas 'verbose)

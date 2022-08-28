@@ -33,8 +33,7 @@
     (error 'bundle "n no puede ser 0."))
   (map implode (list->chunks s n)))
 
-;; PROBLEMA 3:
-
+;; PROBLEMA 3
 ;; take: List Number -> List
 ;; regresa una lista de los primeros n elementos
 ;; de l , o cuantos elementos haya si l tiene menos de n elementos.
@@ -64,8 +63,11 @@
      (drop (rest l) (sub1 n))]))
 
 ;; PROBLEMA 6
-
 ;; list->chunks : List Number -> List
+;; Consume una lista l de valores arbitrarios y un
+;; natural n . El resultado es una lista de trozos de tamaño n .
+;; Cada trozo representa una sub-secuencia
+;; de elementos en l .
 (define (list->chunks l n)
   (unless (list? l)
     (error 'list->chunks "esperaba una lista, recibi ~e" l))
@@ -78,6 +80,24 @@
     [else
      (cons (apply list (take l n))
            (list->chunks (drop l n) n))]))
-    
 
-  (provide (all-defined-out))
+;; PROBLEMA 7
+;; partition : String Number -> ListOfStrings
+;; Toma una cadena s y un natural n. Produce una lista de trozos de
+;; cadenas de tamaño n.
+(define (partition s n)
+  (unless (string? s)
+    (error 'partition "esperaba una cadena de caracteres, recibi ~e" s))
+  (unless (exact-nonnegative-integer? n)
+    (error 'partition "esperaba un numero natural, recibi ~e" n))
+  (unless (not (zero? n))
+    (error 'partition "las particiones no pueden ser de size 0"))
+  (define (partition-in-range str step max)
+    (cond
+      [(>= n max) (cons str '())]
+      [else
+       (cons (substring str 0 step)
+             (partition-in-range (substring str step) step (- max step)))]))
+  (partition-in-range s n (string-length s)))
+
+(provide (all-defined-out))
