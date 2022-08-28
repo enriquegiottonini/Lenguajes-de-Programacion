@@ -1,6 +1,8 @@
 #lang racket
 
+;;
 ;; 2.1 Recursion sin estructura
+;;
 
 (define (unit-string? x)
   (and (string? x)
@@ -99,5 +101,57 @@
        (cons (substring str 0 step)
              (partition-in-range (substring str step) step (- max step)))]))
   (partition-in-range s n (string-length s)))
+
+;;
+;; 2.2 Recursion que ignora estructura
+;;
+
+(define (isort ls cmp)
+  (if (empty? ls)
+      null
+      (insert (first ls)
+              (isort (rest ls) cmp) cmp)))
+
+;; PROBLEMA 8
+(define (insert n ls cmp)
+  (cond
+    [(empty? ls) (list n)]
+    [(cmp n (first ls)) (cons n ls)]
+    [else
+     (cons (first ls) (insert n (rest ls) cmp))]))
+
+;; PROBLEMA 9
+
+(define (quicksort ls)
+  (cond
+    [(empty? ls) null]
+    [else
+     (define pivot (first ls))
+     (append (quicksort (smallers ls pivot))
+             (list pivot)
+             (quicksort (largers ls pivot)))]))
+
+;; PROBLEMA 10
+;; smallers : List Number -> List
+;; regresa una lista con los elementos en la lista que son estrictamente menores
+;; el valor del segundo argumento.
+;; filter es recursivo estructural por tanto smallers tambien lo es.
+(define (smallers lst n)
+  (unless (list? lst)
+    (error 'partition "esperaba una lista, recibi ~e" lst))
+  (unless (number? n)
+    (error 'partition "esperaba un numero, recibi ~e" n))
+  (filter (lambda (x) (< x n)) lst))
+
+;; largers : List Number -> List
+;; regresa una lista con los elementos en la lista que son estrictamente mayores
+;; el valor del segundo argumento.
+(define (largers lst n)
+  (unless (list? lst)
+    (error 'partition "esperaba una lista, recibi ~e" lst))
+  (unless (number? n)
+    (error 'partition "esperaba un numero, recibi ~e" n))
+  (filter (lambda (x) (> x n)) lst))
+
 
 (provide (all-defined-out))

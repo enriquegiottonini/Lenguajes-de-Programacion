@@ -116,7 +116,7 @@ Por lo que no tiene sentido que $n$ sea igual a 0. En la implementacion de <bund
            (bundle (drop s n) n))]))
 \end{lstlisting}
 
-En $(drop \,s \,n)$ si $n=0$ regresa $s$ por lo que la llamada $(bundle\, s\, 0)$ entraria en un loop infinito.
+$(drop \,s \,n) = s$ si $n=0$ por lo que la llamada recursiva estructural en $(bundle\, s\, 0)$ entraria en un loop infinito.
 \\
  
 Following Listing~\ref{list:first}\ldots{} 

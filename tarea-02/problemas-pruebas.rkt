@@ -66,6 +66,32 @@
                   '(""))
     (check-equal? (partition "abcdefg" 1)
                   (list "a" "b" "c" "d" "e" "f" "g")))
+
+  (test-case "smallers"
+    (check-exn exn:fail? (thunk (smallers (list 1 4 2 5) "s")))
+    (check-exn exn:fail? (thunk (smallers "adf" 4)))
+    (check-equal? (smallers null 4)
+                  null)
+    (check-equal? (smallers (list 6 7 8 9) 4)
+                  null)
+    (check-equal? (smallers (list 6 7 8 9) 9)
+                  (list 6 7 8))
+    (check-equal? (smallers (list 6 7 8 9) 100)
+                  (list 6 7 8 9)))
+
+  (test-case "largers"
+    (check-exn exn:fail? (thunk (largers (list 1 4 2 5) "s")))
+    (check-exn exn:fail? (thunk (largers "adf" 4)))
+    (check-equal? (largers null 4)
+                  null)
+    (check-equal? (largers (list 6 7 8 9) 4)
+                  (list 6 7 8 9))
+    (check-equal? (largers (list 6 7 8 9 10) 9)
+                  (list 10))
+    (check-equal? (largers (list 6 7 8 9) 100)
+                  null))
+             
+             
   )
 
 (run-tests pruebas 'verbose)
