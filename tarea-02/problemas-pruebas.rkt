@@ -66,32 +66,27 @@
                   '(""))
     (check-equal? (partition "abcdefg" 1)
                   (list "a" "b" "c" "d" "e" "f" "g")))
+  
+  (test-case "isort"
+    (check-equal? (isort (list 1 2 5 2 3 6 7) (lambda (x y) (< x y)))
+                  '(1 2 2 3 5 6 7))
+    (check-equal? (isort (list 1 2 5 2 3 6 7) (lambda (x y) (> x y)))
+                  '(7 6 5 3 2 2 1))
+    (check-equal? (isort (map number->string (list 1 2 5 2 3 6 7)) string>?)
+                  '("7" "6" "5" "3" "2" "2" "1"))
+    (check-equal? (isort (list "a" "z" "b" "x" "d") string>?)
+                 '("z" "x" "d" "b" "a")))
 
-  (test-case "smallers"
-    (check-exn exn:fail? (thunk (smallers (list 1 4 2 5) "s")))
-    (check-exn exn:fail? (thunk (smallers "adf" 4)))
-    (check-equal? (smallers null 4)
-                  null)
-    (check-equal? (smallers (list 6 7 8 9) 4)
-                  null)
-    (check-equal? (smallers (list 6 7 8 9) 9)
-                  (list 6 7 8))
-    (check-equal? (smallers (list 6 7 8 9) 100)
-                  (list 6 7 8 9)))
-
-  (test-case "largers"
-    (check-exn exn:fail? (thunk (largers (list 1 4 2 5) "s")))
-    (check-exn exn:fail? (thunk (largers "adf" 4)))
-    (check-equal? (largers null 4)
-                  null)
-    (check-equal? (largers (list 6 7 8 9) 4)
-                  (list 6 7 8 9))
-    (check-equal? (largers (list 6 7 8 9 10) 9)
-                  (list 10))
-    (check-equal? (largers (list 6 7 8 9) 100)
-                  null))
-             
-             
+  (test-case "quicksort"
+    (check-equal? (quicksort (list 1 2 5 2 3 6 7) (lambda (x y) (< x y)))
+                  '(1 2 2 3 5 6 7))
+    (check-equal? (quicksort (list 1 2 5 2 3 6 7) (lambda (x y) (> x y)))
+                  '(7 6 5 3 2 2 1))
+    (check-equal? (quicksort (map number->string (list 1 2 5 2 3 6 7)) string>?)
+                  '("7" "6" "5" "3" "2" "2" "1"))
+    (check-equal? (quicksort (list "a" "z" "b" "x" "d") string>?)
+                 '("z" "x" "d" "b" "a")))
+      
   )
 
 (run-tests pruebas 'verbose)

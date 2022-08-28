@@ -122,36 +122,19 @@
 
 ;; PROBLEMA 9
 
-(define (quicksort ls)
+;; quicksort : List Proc -> List
+(define (quicksort ls cmp)
   (cond
     [(empty? ls) null]
     [else
      (define pivot (first ls))
-     (append (quicksort (smallers ls pivot))
-             (list pivot)
-             (quicksort (largers ls pivot)))]))
+     (define smallers (filter (lambda (x) (cmp x pivot)) ls))
+     (define largers  (filter (lambda (x) (and (not (cmp x pivot)) (not (equal? x pivot)))) ls))
+     (define equals   (filter (lambda (x) (equal? x pivot)) ls))
+     (append (quicksort smallers cmp)
+             equals
+             (quicksort largers cmp))]))
 
-;; PROBLEMA 10
-;; smallers : List Number -> List
-;; regresa una lista con los elementos en la lista que son estrictamente menores
-;; el valor del segundo argumento.
-;; filter es recursivo estructural por tanto smallers tambien lo es.
-(define (smallers lst n)
-  (unless (list? lst)
-    (error 'partition "esperaba una lista, recibi ~e" lst))
-  (unless (number? n)
-    (error 'partition "esperaba un numero, recibi ~e" n))
-  (filter (lambda (x) (< x n)) lst))
-
-;; largers : List Number -> List
-;; regresa una lista con los elementos en la lista que son estrictamente mayores
-;; el valor del segundo argumento.
-(define (largers lst n)
-  (unless (list? lst)
-    (error 'partition "esperaba una lista, recibi ~e" lst))
-  (unless (number? n)
-    (error 'partition "esperaba un numero, recibi ~e" n))
-  (filter (lambda (x) (> x n)) lst))
-
+     
 
 (provide (all-defined-out))
