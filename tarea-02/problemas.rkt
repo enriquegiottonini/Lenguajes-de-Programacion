@@ -126,6 +126,7 @@
 (define (quicksort ls cmp)
   (cond
     [(empty? ls) null]
+    [(< (length ls) 100) (isort ls cmp)]
     [else
      (define pivot (first ls))
      (define smallers (filter (lambda (x) (cmp x pivot)) ls))
@@ -134,7 +135,5 @@
      (append (quicksort smallers cmp)
              equals
              (quicksort largers cmp))]))
-
-     
 
 (provide (all-defined-out))

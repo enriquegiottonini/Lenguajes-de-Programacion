@@ -100,7 +100,6 @@ bindingoffset=0mm, top=20mm,bottom=20mm}
 \maketitle
 
 \section*{Problema 5}
-
 La llamada (bundle ’(”a” ”b” ”c”) 0) es un buen uso de bundle ? ¿qué produce?
 ¿por qué? \\ \\
 Sea $\gamma = (bundle\, s\, n)$ donde $s$ es una lista de caracteres y $n$ el tamaño de los trozos entonces:
@@ -119,21 +118,68 @@ Por lo que no tiene sentido que $n$ sea igual a 0. En la implementacion de <bund
 $(drop \,s \,n) = s$ si $n=0$ por lo que la llamada recursiva estructural en $(bundle\, s\, 0)$ entraria en un loop infinito.
 \\
  
-Following Listing~\ref{list:first}\ldots{} 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-\section*{Problem 2}
+\section*{Problema 9}
+Dibuja un diagrama como el de la figura anterior($<isort>$) pero para la lista ’(11 9 2 18 12
+14 4 1) .
 
-\begin{lstlisting}[label={list:second},caption=Sample Bash code.]
-#! /bin/bash
-python stage1.py
-echo "Stage I done!"
-python stage2.py
-echo "Stage II done!"
-python stage3.py
-echo "Stage III done!"
+\newpage
+\section*{Problema 11}
+Si la entrada a quicksort contiene varias repeticiones de un número, va a regresar
+una lista estrictamente más corta que la entrada. Responde el por qué y arregla el problema. \\ \\
+
+La llamada recursiva de quicksort divide el problema (la lista) en 3 partes.
+\begin{enumerate}
+\item Los que son estrictamente menores al pivote.
+\item El elemento
+\item Los que son estrictamente mayores al pivote.
+\end{enumerate}
+\begin{lstlisting}[label={list:first},caption=quicksort.]
+(define (quicksort ls)
+  (cond
+    [(empty? ls) null]
+    [else
+     (define pivot (first ls))
+     (append (quicksort (smallers ls pivot))
+             (list pivot)
+             (quicksort (largers ls pivot)))]))
 \end{lstlisting}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Una manera de solucionarlo puede ser que en la 2) parte en vez de solo seleccionar el pivote se construya una lista de todas las repeticiones del pivote.
+\begin{lstlisting}[label={list:first},caption=quicksort.]
+(define (quicksort ls)
+  (cond
+    [(empty? ls) null]
+    [else
+     (define pivot (first ls))
+     (append (quicksort (smallers ls pivot))
+             (filter (lambda (x) (equal? x pivot)) ls)
+             (quicksort (largers ls pivot)))]))
+\end{lstlisting}
 
+\section*{Problema 13}
+Implementa una versión de quicksort que utilice isort si la longitud de la entrada está
+por debajo de un umbral. Determina este umbral utilizando la función time , escribe el procedimiento
+que seguiste para encontrar este umbral. \\ \\
+
+Para encontrar el umbral defino una lista de longitud n con elementos aleatorios, luego con $time$ comparo el tiempo de $isort$ y de $quicksort$.
+\begin{lstlisting}[label={list:second},caption=quicksort-isort-time.]
+(define (randlist n)
+  (shuffle (range n)))
+(define (greater x y) (> x y))
+
+n=10,000
+isort:     cpu time: 14729 real time: 14719 gc time: 2746
+quicksort: cpu time:   136 real time:   136 gc time:   46
+
+n=1000
+isort:     cpu time: 154 real time: 155 gc time: 39
+quicksort: cpu time:   8 real time:   8 gc time:  0
+
+n=100
+isort:     cpu time: 1 real time: 1 gc time: 0
+quicksort: cpu time: 0 real time: 0 gc time: 0
+
+\end{lstlisting}
+Umbral = 100
 \end{document}
