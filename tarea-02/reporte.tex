@@ -106,7 +106,7 @@ Sea $\gamma = (bundle\, s\, n)$ donde $s$ es una lista de caracteres y $n$ el ta
 \[ (length\,\gamma) = \Big \lceil \dfrac{length(s)}{n}\Big \rceil\]
 Por lo que no tiene sentido que $n$ sea igual a 0. En la implementacion de <bundle> esto se refleja en la llamada recursiva estructural.
 
-\begin{lstlisting}[label={list:first},caption=bundle.]
+\begin{lstlisting}[title=bundle]
 (define (bundle s n)
   (cond
     [(null? s) null]
@@ -115,7 +115,7 @@ Por lo que no tiene sentido que $n$ sea igual a 0. En la implementacion de <bund
            (bundle (drop s n) n))]))
 \end{lstlisting}
 
-$(drop \,s \,n) = s$ si $n=0$ por lo que la llamada recursiva estructural en $(bundle\, s\, 0)$ entraria en un loop infinito.
+$(drop \,s \,n) = s$ si $n=0$ por lo que la llamada recursiva  en $(bundle\, s\, 0)$ entraria en un loop infinito.
 \\
  
 
@@ -134,7 +134,7 @@ La llamada recursiva de quicksort divide el problema (la lista) en 3 partes.
 \item El elemento
 \item Los que son estrictamente mayores al pivote.
 \end{enumerate}
-\begin{lstlisting}[label={list:first},caption=quicksort.]
+\begin{lstlisting}[title=quicksort]
 (define (quicksort ls)
   (cond
     [(empty? ls) null]
@@ -146,7 +146,7 @@ La llamada recursiva de quicksort divide el problema (la lista) en 3 partes.
 \end{lstlisting}
 
 Una manera de solucionarlo puede ser que en la 2) parte en vez de solo seleccionar el pivote se construya una lista de todas las repeticiones del pivote.
-\begin{lstlisting}[label={list:first},caption=quicksort.]
+\begin{lstlisting}[title=quicksort]
 (define (quicksort ls)
   (cond
     [(empty? ls) null]
@@ -163,7 +163,7 @@ por debajo de un umbral. Determina este umbral utilizando la función time , esc
 que seguiste para encontrar este umbral. \\ \\
 
 Para encontrar el umbral defino una lista de longitud n con elementos aleatorios, luego con $time$ comparo el tiempo de $isort$ y de $quicksort$.
-\begin{lstlisting}[label={list:second},caption=quicksort-isort-time.]
+\begin{lstlisting}[title= timing quicksort and isort]
 (define (randlist n)
   (shuffle (range n)))
 (define (greater x y) (> x y))
@@ -181,5 +181,73 @@ isort:     cpu time: 1 real time: 1 gc time: 0
 quicksort: cpu time: 0 real time: 0 gc time: 0
 
 \end{lstlisting}
-Umbral = 100
+Se toma que el Umbral = 100 ya que no hay diferencia entre un procedimiento con el otro.
+
+\section*{Problema 18}
+Considera la siguiente definición de smallers , uno de los procedimientos utilizados
+en quicksort , responde en qué puede fallar al utilizar esta versión modificada en el procedimiento
+de ordenamiento.
+
+\begin{lstlisting}[title = smallers]
+(define (smallers l n)
+  (cond
+    [(empty? l) '()]
+    [else (if (<= (first l) n)
+              (cons (first l) (smallers (rest l) n))
+              (smallers (rest l) n))]))
+\end{lstlisting}
+
+\section*{Problema 19}
+Describe con tus propias palabras cómo funciona find-largest-divisor de gcd-structural . Responde por qué comienza desde (min n m) .
+
+\begin{lstlisting}[title = gcd-structural]
+(define (gcd-structural n m)
+  (define (find-largest-divisor k)
+    (cond [(= i 1) 1]
+          [(= (remainder n i) (remainder m i) 0) i]
+          [else (find-largest-divisor (- k 1))]))
+  (find-largest-divisor (min n m)))
+\end{lstlisting}
+
+\section*{Problema 20}
+Describe con tus propias palabras cómo funciona find-largest-divisor de gcd-
+generative .
+
+\begin{lstlisting}[title = gcd-generative]
+(define (gcd-generative n m)
+  (define (find-largest-divisor max min)
+    (if (= min 0)
+        max
+        (find-largest-divisor min (remainder max min))))
+  (find-largest-divisor (max n m) (min n m)))
+\end{lstlisting}
+
+
+
+\section*{Problema 21}
+Utiliza la función time para determinar cuál de las dos implementaciones es más
+eficiente, escribiendo tu respuesta con los tiempos de ejecución obtenidos con ambos procedimientos
+para valores “pequeños”, “medianos” y “grandes”. Justifica qué valores usaste en cada una de estas
+mediciones y por qué los consideraste de ese “tamaño”.
+\begin{lstlisting}[title= timing quicksort and isort]
+OKTOBERFEST
+
+n=10,000
+isort:     cpu time: 14729 real time: 14719 gc time: 2746
+quicksort: cpu time:   136 real time:   136 gc time:   46
+
+n=1000
+isort:     cpu time: 154 real time: 155 gc time: 39
+quicksort: cpu time:   8 real time:   8 gc time:  0
+
+n=100
+isort:     cpu time: 1 real time: 1 gc time: 0
+quicksort: cpu time: 0 real time: 0 gc time: 0
+
+\end{lstlisting}
+
+\section*{Problema 22}
+Piensa y describe por qué no siempre es la mejor opción elegir el procedimiento más
+eficiente en tiempo de ejecución. Utiliza criterios que no sean el de “eficiencia”.
+
 \end{document}

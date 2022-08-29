@@ -4,27 +4,32 @@
 ;; 2.1 Recursion sin estructura
 ;;
 
+
+;; unit-string? : String -> Bool
 (define (unit-string? x)
   (and (string? x)
        (= (string-length x) 1)))
 
+;; unit-string-list? : (listof unit-string?) -> Bool
 (define (unit-string-list? x)
   (or (null? x)
       (and (pair? x)
            (unit-string? (first x))
            (unit-string-list? (rest x)))))
 
+;; explode : String -> (listof unit-string?)
 (define (explode s)
   (unless (string? s)
     (error 'explode "esperaba una cadena, pero recibi: ~e" s))
   (map string (string->list s)))
 
+;; implode : (listof unit-string?) -> String
 (define (implode ls)
   (unless (unit-string-list? ls)
     (error 'implode "esperaba una lista de cadenas unitarias, pero recibi: ~e" ls))
   (apply string-append ls))
 
-;; bundle : ListOfUnitStrings -> ListOfStrings
+;; bundle : (listof unit-string?) -> (listof string?)
 ;; empaqueta trozos de una lista de cadenas unitarias 's' en cadenas de size 'n'
 (define (bundle s n)
   (unless (unit-string-list? s)
@@ -124,6 +129,8 @@
 
 ;; quicksort : List Proc -> List
 (define (quicksort ls cmp)
+  (unless (list? ls) (error 'quicksort "esperaba una lista, recibi ~e" ls))
+  (unless (procedure? cmp) (error 'quicksort "esperaba un procedimiento, recibi ~e" cmp))
   (cond
     [(empty? ls) null]
     [(< (length ls) 100) (isort ls cmp)]
