@@ -85,8 +85,6 @@
     (check-equal? (quicksort (map number->string (list 1 2 5 2 3 6 7)) string>?)
                   '("7" "6" "5" "3" "2" "2" "1"))
     (check-equal? (quicksort (list "a" "z" "b" "x" "d") string>?)
-                 '("z" "x" "d" "b" "a")))
-      
-  )
+                 '("z" "x" "d" "b" "a"))))
 
 (run-tests pruebas 'verbose)
