@@ -143,7 +143,7 @@
              equals
              (quicksort largers cmp))]))
 
-;; 2.5 Tomando decicisones
+;; 2.5 Tomando decisones
 (define (gcd-structural n m)
   (define (find-largest-divisor k)
     (cond [(= k 1) 1]
@@ -158,4 +158,37 @@
         (find-largest-divisor min (remainder max min))))
   (find-largest-divisor (max n m) (min n m)))
 
+;; 2.6 El Pilón
+(require pict)
+(require racket/draw)
+
+(define (triangle side width color)
+  (define w side)
+  (define h (* side (sin (/ pi 3))))
+  (define (draw-it ctx dx dy)
+    (define prev-pen (send ctx get-pen))
+    (define path (new dc-path%))
+    (send ctx set-pen (new pen% [width width] [color color]))
+    (send path move-to 0 h)
+    (send path line-to w h)
+    (send path line-to (/ w 2) 0)
+    (send path close)
+    (send ctx draw-path path dx dy)
+    (send ctx set-pen prev-pen))
+  (dc draw-it w h))
+
+(define (sierpinski side)
+  (cond [(<= side 4)(triangle side 1 "red")]
+        [else
+         (define half (sierpinski (/ side 2)))
+         (vc-append half (hc-append half half))]))
+
+(define (circleski side)
+  (cond [(<= side 10) (circle side #:border-width 1)]
+        [else
+         (define center (circleski (/ side 2)))
+         (cc-superimpose center (vc-append center (hc-append center center)))]))
+
+
+  
 (provide (all-defined-out))
