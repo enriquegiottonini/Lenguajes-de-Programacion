@@ -4,7 +4,6 @@
 ;; 2.1 Recursion sin estructura
 ;;
 
-
 ;; unit-string? : String -> Bool
 (define (unit-string? x)
   (and (string? x)
