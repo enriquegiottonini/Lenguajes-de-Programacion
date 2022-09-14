@@ -17,7 +17,7 @@
   (streqC [l : ExprC] [r : ExprC])
   (ifC [a : ExprC] [b : ExprC] [c : ExprC])
   (funC [name : Symbol] [body : ExprC])
-  (callC [name : Symbol] [value : ExprC]))
+  (appC [id : ExprC] [value : ExprC]))
 
 ;; Como minimo contiene a ExprC, agrega and, or, let
 ;; usar binops para +, ++, ==
@@ -26,7 +26,7 @@
   (strS [s : String])
   (idS [name : Symbol])
   (boolS [b : Boolean])
-  (binopS [l : ExprS] [r : ExprS])
+  (binopS [op : binops] [l : ExprS] [r : ExprS])
   (plusS [l : ExprS] [r : ExprS])
   (concatS [l : ExprS] [r : ExprS])
   (numeqS [l : ExprS] [r : ExprS])
@@ -36,7 +36,13 @@
   (orS [l : ExprS] [r : ExprS])
   (letS [name : Symbol] [value : ExprS] [body : ExprS])
   (funS [name : Symbol] [body : ExprS])
-  (callS [name : Symbol] [value : ExprS]))
+  (appS [id : ExprS] [value : ExprS]))
+
+(define-type binops
+  (plusO)
+  (appendO)
+  (numeqO)
+  (streqO))
 
 ;; desugar : ExprS -> ExprC
 
