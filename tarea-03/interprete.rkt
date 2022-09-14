@@ -46,6 +46,12 @@
 
 ;; interp : ExprC -> Value
 ;; post-orden
+;(define (interp [e : ExprC] [env : Environment]) : Value
+ ; (type-case ExprC e
+  ;  [(numC n) (numV n)]
+   ; [(strC s) (strV s)]
+    ;[(idC name) (lookup name env)]
+    ;))
 
 ;; ENVIRONMENTS
 ;; hacer pruebas con hash mutable e inmutable
@@ -54,6 +60,14 @@
 (define-type-alias Environment (Listof Binding))
 (define empty-env empty)
 (define extend-env cons)
+
+;; lookup
+(define (lookup [name : Symbol] (env : Environment)) : Value
+  (if (empty? env)
+      (error-unbound-id name)
+      (if (eq? name (bind-id (first env)))
+          (bind-value (first env))
+          (lookup name (rest env)))))
                              
 ;; desugar : ExprS -> ExprC
 
@@ -67,7 +81,7 @@
 ;; Funciones unarias con lexical scope
 
 ;; ERRORES
-(define (error-bad-if-conditional [val : String]) : Void
+(define (error-bad-if-conditional [val : String])
   (error 'interp
          (string-append
           val " no es un argumento booleano.")))
@@ -78,13 +92,13 @@
           "type val1 vs type val2"
           "malo")))
 
-(define (error-unbound-id [id : String]) : Void
+(define (error-unbound-id [id : Symbol])
   (error 'interp
          (string-append
-          "unbound identifier "
-          id)))
+          "unbound identifier '"
+          (symbol->string id))))
 
-(define (error-bad-proc [name : String]) : Void
+(define (error-bad-proc [name : String])
   (error 'interp
          (string-append
           name " not a function.")))
