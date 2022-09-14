@@ -44,9 +44,19 @@
   (numeqO)
   (streqO))
 
+;; interp : ExprC -> Value
+;; post-orden
+
+;; ENVIRONMENTS
+;; hacer pruebas con hash mutable e inmutable
+(define-type Binding
+  (bind [id : Symbol] [value : Value]))
+(define-type-alias Environment (Listof Binding))
+(define empty-env empty)
+(define extend-env cons)
+                             
 ;; desugar : ExprS -> ExprC
 
-;; interp : ExprC -> Value
 
 ;;(define (eval [str : S-Exp]) : Value
 ;;  (interp (desugar (parse str))))
