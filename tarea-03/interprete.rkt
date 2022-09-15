@@ -11,10 +11,7 @@
   (strC [s : String])
   (idC [name : Symbol])
   (boolC [b : Boolean])
-  (plusC [l : ExprC] [r : ExprC])
-  (concatC [l : ExprC] [r : ExprC])
-  (numeqC [l : ExprC] [r : ExprC])
-  (streqC [l : ExprC] [r : ExprC])
+  (binopC (op : binops) [l : ExprC] [r : ExprC])
   (ifC [a : ExprC] [b : ExprC] [c : ExprC])
   (funC [name : Symbol] [body : ExprC])
   (appC [id : ExprC] [value : ExprC]))
@@ -47,11 +44,26 @@
 ;; interp : ExprC -> Value
 ;; post-orden
 ;(define (interp [e : ExprC] [env : Environment]) : Value
- ; (type-case ExprC e
-  ;  [(numC n) (numV n)]
-   ; [(strC s) (strV s)]
-    ;[(idC name) (lookup name env)]
-    ;))
+; (type-case ExprC e
+;  [(numC n) (numV n)]
+; [(strC s) (strV s)]
+;[(idC name) (lookup name env)]
+;[(boolS b) (boolV b)]
+; [(binopC op l r) (let ([rvalue (interp r env)]
+ ;                      [lvalue (interp l env)])
+  ;               (if (eq? (get-variant-value rvalue)
+   ;                       (get-variant-value lvalue))
+    ;                 ()
+     ;                (else ok)))]
+                           
+(define (get-variant-value [v : Value]) : Symbol
+  (cond
+    ([numV? v] 'numV)
+    ([boolV? v] 'boolV)
+    ([strV? v] 'strV)
+    ((procV? v) 'procV)
+    (else (error 'get-variant-value "unrecognized variant of Value."))))
+                       
 
 ;; ENVIRONMENTS
 ;; hacer pruebas con hash mutable e inmutable
@@ -86,11 +98,20 @@
          (string-append
           val " no es un argumento booleano.")))
 
-(define (error-bad-operand val1 val2)
+(define (error-typecheck [val1 : Symbol] [val2 : Symbol])
   (error 'interp
-         (string-append
-          "type val1 vs type val2"
-          "malo")))
+         (write (list
+                 "type-check failed,"
+                 (symbol->string val1)
+                 "vs."
+                 (symbol->string val2)))))
+
+(define (write [l : (Listof String)])
+  (if (empty? l)
+      ""
+      (string-append (first l)
+                     (string-append " " (write (rest l))))))
+            
 
 (define (error-unbound-id [id : Symbol])
   (error 'interp
