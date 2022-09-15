@@ -43,27 +43,46 @@
 
 ;; interp : ExprC -> Value
 ;; post-orden
-;(define (interp [e : ExprC] [env : Environment]) : Value
-; (type-case ExprC e
-;  [(numC n) (numV n)]
-; [(strC s) (strV s)]
-;[(idC name) (lookup name env)]
-;[(boolS b) (boolV b)]
-; [(binopC op l r) (let ([rvalue (interp r env)]
- ;                      [lvalue (interp l env)])
-  ;               (if (eq? (get-variant-value rvalue)
-   ;                       (get-variant-value lvalue))
-    ;                 ()
-     ;                (else ok)))]
+(define (interp [e : ExprC] [env : Environment]) : Value
+  (type-case ExprC e
+    [(numC n) (numV n)]
+    [(strC s) (strV s)]
+    [(idC name) (lookup name env)]
+    [(boolC b) (boolV b)]
+    [(binopC op l r) (let ([rval (interp r env)]
+                           [lval (interp l env)])
+                       (let ([rtype (get-variant-value rval)]
+                             [ltype (get-variant-value lval)]
+                             [optype (get-op-symbol op)])
+                         (if (eq? rtype ltype)
+                             (cond
+                               [(and (plusO? op) (numV? rval))
+                                (numV (+ (numV-n lval) (numV-n rval)))]
+                               [(and (numeqO? op) (numV? rval))
+                                (boolV (= (numV-n lval) (numV-n rval)))]
+                               [(and (appendO? op) (strV? rval))
+                                (strV (string-append (strV-s lval) (strV-s rval)))]
+                               [(and (streqO? op) (strV? rval))
+                                (boolV (string=? (strV-s lval) (strV-s rval)))]
+                               [else (error 'interp "bad operands.")])
+                             (error-typecheck-binop optype ltype rtype))))]
+                               
                            
+[else (numV 0)]))
+
 (define (get-variant-value [v : Value]) : Symbol
   (cond
-    ([numV? v] 'numV)
-    ([boolV? v] 'boolV)
-    ([strV? v] 'strV)
-    ((procV? v) 'procV)
-    (else (error 'get-variant-value "unrecognized variant of Value."))))
-                       
+    [(numV? v) 'numV]
+    [(boolV? v) 'boolV]
+    [(strV? v) 'strV]
+    [(procV? v) 'procV]))
+
+(define (get-op-symbol [op : binops]) : Symbol
+  (cond
+    [(plusO? op) '+]
+    [(numeqO? op) 'num=]
+    [(appendO? op) '++]
+    [(streqO? op) 'str=]))                   
 
 ;; ENVIRONMENTS
 ;; hacer pruebas con hash mutable e inmutable
@@ -98,13 +117,15 @@
          (string-append
           val " no es un argumento booleano.")))
 
-(define (error-typecheck [val1 : Symbol] [val2 : Symbol])
+(define (error-typecheck-binop [op : Symbol] [val1 : Symbol] [val2 : Symbol])
   (error 'interp
          (write (list
                  "type-check failed,"
                  (symbol->string val1)
                  "vs."
-                 (symbol->string val2)))))
+                 (symbol->string val2)
+                 "in"
+                 (symbol->string op)))))
 
 (define (write [l : (Listof String)])
   (if (empty? l)
