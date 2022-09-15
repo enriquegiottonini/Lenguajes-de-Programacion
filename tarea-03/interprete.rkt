@@ -49,26 +49,27 @@
     [(strC s) (strV s)]
     [(idC name) (lookup name env)]
     [(boolC b) (boolV b)]
-    [(binopC op l r) (let ([rval (interp r env)]
-                           [lval (interp l env)])
-                       (let ([rtype (get-variant-value rval)]
-                             [ltype (get-variant-value lval)]
-                             [optype (get-op-symbol op)])
-                         (if (eq? rtype ltype)
-                             (cond
-                               [(and (plusO? op) (numV? rval))
-                                (numV (+ (numV-n lval) (numV-n rval)))]
-                               [(and (numeqO? op) (numV? rval))
-                                (boolV (= (numV-n lval) (numV-n rval)))]
-                               [(and (appendO? op) (strV? rval))
-                                (strV (string-append (strV-s lval) (strV-s rval)))]
-                               [(and (streqO? op) (strV? rval))
-                                (boolV (string=? (strV-s lval) (strV-s rval)))]
-                               [else (error 'interp "bad operands.")])
-                             (error-typecheck-binop optype ltype rtype))))]
-                               
-                           
-[else (numV 0)]))
+    [(binopC op l r) (interp-binopC op l r env)]                                  
+    [else (numV 0)]))
+
+(define (interp-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
+  (let ([rval (interp r env)]
+        [lval (interp l env)])
+    (let ([rtype (get-variant-value rval)]
+          [ltype (get-variant-value lval)]
+          [optype (get-op-symbol op)])
+      (if (eq? rtype ltype)
+          (cond
+            [(and (plusO? op) (numV? rval))
+             (numV (+ (numV-n lval) (numV-n rval)))]
+            [(and (numeqO? op) (numV? rval))
+             (boolV (= (numV-n lval) (numV-n rval)))]
+            [(and (appendO? op) (strV? rval))
+             (strV (string-append (strV-s lval) (strV-s rval)))]
+            [(and (streqO? op) (strV? rval))
+             (boolV (string=? (strV-s lval) (strV-s rval)))]
+            [else (error-bad-operands optype ltype rtype)])
+          (error-typecheck-binop optype ltype rtype)))))
 
 (define (get-variant-value [v : Value]) : Symbol
   (cond
@@ -126,6 +127,16 @@
                  (symbol->string val2)
                  "in"
                  (symbol->string op)))))
+
+(define (error-bad-operands [op : Symbol] [val1 : Symbol] [val2 : Symbol])
+  (error 'interp
+         (write (list
+                 "bad operands in"
+                 "("
+                 (symbol->string op)
+                 (symbol->string val1)
+                 (symbol->string val2)
+                 ")"))))
 
 (define (write [l : (Listof String)])
   (if (empty? l)
