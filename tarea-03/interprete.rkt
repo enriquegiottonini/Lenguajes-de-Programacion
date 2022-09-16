@@ -12,7 +12,7 @@
   (idC [name : Symbol])
   (boolC [b : Boolean])
   (binopC (op : binops) [l : ExprC] [r : ExprC])
-  (ifC [a : ExprC] [b : ExprC] [c : ExprC])
+  (ifC [cond : ExprC] [conseq : ExprC] [alt : ExprC])
   (funC [name : Symbol] [body : ExprC])
   (appC [id : ExprC] [value : ExprC]))
 
@@ -49,24 +49,31 @@
     [(strC s) (strV s)]
     [(idC name) (lookup name env)]
     [(boolC b) (boolV b)]
-    [(binopC op l r) (interp-binopC op l r env)]                                  
+    [(binopC op l r) (interp-binopC op l r env)]
+    [(ifC cond conseq alt) (let ([cndval (interp cond env)])
+                             (if (boolV? cndval)
+                                 (if (boolV-b cndval)
+                                     (interp conseq env)
+                                     (interp alt env)) 
+                                 (error-bad-conditional (get-variant-value cndval))))]
+                                 
     [else (numV 0)]))
 
 (define (interp-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
-  (let ([rval (interp r env)]
-        [lval (interp l env)])
-    (let ([rtype (get-variant-value rval)]
-          [ltype (get-variant-value lval)]
+  (let ([lval (interp l env)]
+        [rval (interp r env)])
+    (let ([ltype (get-variant-value lval)]
+          [rtype (get-variant-value rval)]
           [optype (get-op-symbol op)])
       (if (eq? rtype ltype)
           (cond
-            [(and (plusO? op) (numV? rval))
+            [(and (plusO? op) (numV? lval))
              (numV (+ (numV-n lval) (numV-n rval)))]
-            [(and (numeqO? op) (numV? rval))
+            [(and (numeqO? op) (numV? lval))
              (boolV (= (numV-n lval) (numV-n rval)))]
-            [(and (appendO? op) (strV? rval))
+            [(and (appendO? op) (strV? lval))
              (strV (string-append (strV-s lval) (strV-s rval)))]
-            [(and (streqO? op) (strV? rval))
+            [(and (streqO? op) (strV? lval))
              (boolV (string=? (strV-s lval) (strV-s rval)))]
             [else (error-bad-operands optype ltype rtype)])
           (error-typecheck-binop optype ltype rtype)))))
@@ -113,10 +120,11 @@
 ;; Funciones unarias con lexical scope
 
 ;; ERRORES
-(define (error-bad-if-conditional [val : String])
+(define (error-bad-conditional [val : Symbol])
   (error 'interp
-         (string-append
-          val " no es un argumento booleano.")))
+         (write (list
+                 "bad conditional"
+                 (symbol->string val)))))
 
 (define (error-typecheck-binop [op : Symbol] [val1 : Symbol] [val2 : Symbol])
   (error 'interp
