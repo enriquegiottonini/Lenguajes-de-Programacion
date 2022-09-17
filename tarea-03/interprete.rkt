@@ -16,25 +16,6 @@
   (funC [param : Symbol] [body : ExprC])
   (appC [procedure : ExprC] [arg : ExprC]))
 
-;; Como minimo contiene a ExprC, agrega and, or, let
-;; usar binops para +, ++, ==
-(define-type ExprS
-  (numS [n : Number])
-  (strS [s : String])
-  (idS [name : Symbol])
-  (boolS [b : Boolean])
-  (binopS [op : binops] [l : ExprS] [r : ExprS])
-  (plusS [l : ExprS] [r : ExprS])
-  (concatS [l : ExprS] [r : ExprS])
-  (numeqS [l : ExprS] [r : ExprS])
-  (streqS [l : ExprS] [r : ExprS])
-  (ifS [a : ExprS] [b : ExprS] [c : ExprS])
-  (andS [l : ExprS] [r : ExprS])
-  (orS [l : ExprS] [r : ExprS])
-  (letS [name : Symbol] [value : ExprS] [body : ExprS])
-  (funS [name : Symbol] [body : ExprS])
-  (appS [id : ExprS] [value : ExprS]))
-
 (define-type binops
   (plusO)
   (appendO)
@@ -112,17 +93,41 @@
       (if (eq? name (bind-id (first env)))
           (bind-value (first env))
           (lookup name (rest env)))))
+
+;; Como minimo contiene a ExprC, agrega and, or, let
+;; usar binops para +, ++, ==
+(define-type ExprS
+  (numS [n : Number])
+  (strS [s : String])
+  (idS [name : Symbol])
+  (boolS [b : Boolean])
+  (binopS [op : binops] [l : ExprS] [r : ExprS])
+  (ifS [cond : ExprS] [conseq : ExprS] [alt : ExprS])
+  (andS [l : ExprS] [r : ExprS])
+  (orS [l : ExprS] [r : ExprS])
+  (letS [name : Symbol] [value : ExprS] [body : ExprS])
+  (funS [param : Symbol] [body : ExprS])
+  (appS [id : ExprS] [value : ExprS]))
                              
 ;; desugar : ExprS -> ExprC
-
+(define (desugar [e : ExprS]) : ExprC
+  (type-case ExprS e
+    [(numS n) (numC n)]
+    [(strS s) (strC s)]
+    [(idS name) (idC name)]
+    [(boolS b) (boolC b)]
+    [(binopS op l r) (binopC op (desugar l) (desugar r))]
+    [(ifS cond conseq alt) (ifC (desugar cond) (desugar conseq) (desugar alt))]
+    [(funS param body) (funC param (desugar body))]
+    [(appS procedure arg) (appC (desugar procedure) (desugar arg))]
+    [(andS l r) (ifC (desugar l) (desugar r) (boolC #f))]
+    [(orS l r) (ifC (desugar l) (boolC #t) (desugar r))]
+    [(letS name value body) (appC (funC name (desugar body)) (desugar value))]))
 
 ;;(define (eval [str : S-Exp]) : Value
 ;;  (interp (desugar (parse str))))
 
-;; Entornos : Symbol(id) -> Value
 ;; usar hash inmutables y luego mutables?
-
-;; Funciones unarias con lexical scope
 
 ;; ERRORES
 (define (error-bad-conditional [val : Symbol])
