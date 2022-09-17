@@ -42,7 +42,7 @@
                             (if (funV? fun)
                                 (let ([param (funV-param fun)]
                                       [body  (funV-body fun)])
-                                  (interp body (extend-env (bind param (interp arg env)) empty-env)))
+                                  (interp body (extend-env (bind param (interp arg env)) env)))
                                 (error 'interp "not a function.")))]))
 
 (define (interp-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
@@ -124,8 +124,8 @@
     [(orS l r) (ifC (desugar l) (boolC #t) (desugar r))]
     [(letS name value body) (appC (funC name (desugar body)) (desugar value))]))
 
-;;(define (eval [str : S-Exp]) : Value
-;;  (interp (desugar (parse str))))
+(define (eval [str : S-Exp]) : Value
+  (interp (desugar (parse str)) empty-env))
 
 ;; usar hash inmutables y luego mutables?
 

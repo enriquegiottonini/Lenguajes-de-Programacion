@@ -71,6 +71,7 @@
                (numC 10))
               empty-env)
       (numV 20))
+
 (test (interp (appC (funC 'x (appC
                               (funC 'y (binopC (plusO) (idC 'y) (idC 'y)))
                               (idC 'x)))
