@@ -4,7 +4,7 @@
   (numV  [n : Number])
   (boolV [b : Boolean])
   (strV  [s : String])
-  (procV [f : (Symbol -> Value)]))
+  (funV [param : Symbol] [body : ExprC]))
 
 (define-type ExprC
   (numC [n : Number])
@@ -13,8 +13,8 @@
   (boolC [b : Boolean])
   (binopC (op : binops) [l : ExprC] [r : ExprC])
   (ifC [cond : ExprC] [conseq : ExprC] [alt : ExprC])
-  (funC [name : Symbol] [body : ExprC])
-  (appC [id : ExprC] [value : ExprC]))
+  (funC [param : Symbol] [body : ExprC])
+  (appC [procedure : ExprC] [arg : ExprC]))
 
 ;; Como minimo contiene a ExprC, agrega and, or, let
 ;; usar binops para +, ++, ==
@@ -56,8 +56,13 @@
                                      (interp conseq env)
                                      (interp alt env)) 
                                  (error-bad-conditional (get-variant-value cndval))))]
-                                 
-    [else (numV 0)]))
+    [(funC param body) (funV param body)]
+    [(appC procedure arg) (let ([fun (interp procedure env)])
+                            (if (funV? fun)
+                                (let ([param (funV-param fun)]
+                                      [body  (funV-body fun)])
+                                  (interp body (extend-env (bind param (interp arg env)) empty-env)))
+                                (error 'interp "not a function.")))]))
 
 (define (interp-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
   (let ([lval (interp l env)]
@@ -83,7 +88,7 @@
     [(numV? v) 'numV]
     [(boolV? v) 'boolV]
     [(strV? v) 'strV]
-    [(procV? v) 'procV]))
+    [(funV? v) 'procV]))
 
 (define (get-op-symbol [op : binops]) : Symbol
   (cond
