@@ -65,10 +65,16 @@
                        (binopC (appendO) (strC "ok") (strC "google"))) empty-env)
           "interp: bad conditional numV ")
 
-
 ;; interp fun
 (test (interp (appC
                (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
                (numC 10))
               empty-env)
       (numV 20))
+(test (interp (appC (funC 'x (appC
+                              (funC 'y (binopC (plusO) (idC 'y) (idC 'y)))
+                              (idC 'x)))
+                    (numC 10))
+              empty-env)
+      (numV 20))
+;; ??
