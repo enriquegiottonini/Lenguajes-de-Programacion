@@ -120,8 +120,8 @@
     [(ifS cond conseq alt) (ifC (desugar cond) (desugar conseq) (desugar alt))]
     [(funS param body) (funC param (desugar body))]
     [(appS procedure arg) (appC (desugar procedure) (desugar arg))]
-    [(andS l r) (ifC (desugar l) (desugar r) (boolC #f))]
-    [(orS l r) (ifC (desugar l) (boolC #t) (desugar r))]
+    [(andS l r) (ifC (desugar l) (ifC (desugar r) (boolC #t) (boolC #f)) (boolC #f))]
+    [(orS l r) (ifC (desugar l) (boolC #t) (ifC (desugar r) (boolC #t) (boolC #f)))]
     [(letS name value body) (appC (funC name (desugar body)) (desugar value))]))
 
 (define (eval [str : S-Exp]) : Value
