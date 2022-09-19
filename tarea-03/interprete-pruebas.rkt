@@ -66,10 +66,26 @@
           "interp: bad conditional numV ")
 
 ;; interp fun
+
+(test (interp (funC 'x (binopC (plusO) (idC 'x) (idC 'x))) empty-env)
+      (funV 'x (binopC (plusO) (idC 'x) (idC 'x))))
+
+(test (interp (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
+              (list (bind 'x (numV 10))))
+      (funV 'x (binopC (plusO) (idC 'x) (idC 'x))))
+
+;; interp apply function
+
 (test (interp (appC
                (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
                (numC 10))
               empty-env)
+      (numV 20))
+
+(test (interp (appC
+               (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
+               (numC 10))
+              (list (bind 'x (numV 100))))
       (numV 20))
 
 (test (interp (appC (funC 'x (appC
@@ -78,4 +94,9 @@
                     (numC 10))
               empty-env)
       (numV 20))
-;; ??
+
+(test/exn (interp (appC (idC 'f) (numC 10))
+                  empty-env)
+          "interp: unbound identifier 'f")
+
+
