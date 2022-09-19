@@ -15,88 +15,88 @@
                        (bind 'a (numV 1))))
       (boolV #t))
 
-;; testing interp binopC
-(test (interp (binopC (plusO) (numC 1) (numC 0)) empty-env)
+;; testing interp-h binopC
+(test (interp-h (binopC (plusO) (numC 1) (numC 0)) empty-env)
       (numV 1))
-(test (interp (binopC (appendO) (strC "ok") (strC "google")) empty-env)
+(test (interp-h (binopC (appendO) (strC "ok") (strC "google")) empty-env)
       (strV "okgoogle"))
-(test (interp (binopC (numeqO) (numC 1) (numC 1)) empty-env)
+(test (interp-h (binopC (numeqO) (numC 1) (numC 1)) empty-env)
       (boolV #t))
-(test (interp (binopC (numeqO) (numC 1) (numC 0)) empty-env)
+(test (interp-h (binopC (numeqO) (numC 1) (numC 0)) empty-env)
       (boolV #f))
-(test (interp (binopC (streqO) (strC "ok") (strC "ok")) empty-env)
+(test (interp-h (binopC (streqO) (strC "ok") (strC "ok")) empty-env)
       (boolV #t))
-(test (interp (binopC (streqO) (strC "ok") (strC "google")) empty-env)
+(test (interp-h (binopC (streqO) (strC "ok") (strC "google")) empty-env)
       (boolV #f))
-(test (interp (binopC (streqO) (strC "ok") (strC "ok ")) empty-env)
+(test (interp-h (binopC (streqO) (strC "ok") (strC "ok ")) empty-env)
       (boolV #f))
-(test/exn (interp (binopC (plusO) (numC 1) (boolC #t)) empty-env)
-          "interp: type-check failed, numV vs. boolV in + ")
-(test/exn (interp (binopC (appendO) (strC "ok") (boolC #t)) empty-env)
-          "interp: type-check failed, strV vs. boolV in ++ ")
-(test/exn (interp (binopC (numeqO) (numC 1) (strC "ok")) empty-env)
-          "interp: type-check failed, numV vs. strV in num= ")
-(test/exn (interp (binopC (streqO) (numC 1) (strC "ok")) empty-env)
-          "interp: type-check failed, numV vs. strV in str= ")
-(test/exn (interp (binopC (plusO) (strC "ok") (strC "ok")) empty-env)
-          "interp: bad operands in ( + strV strV ) ")
-(test/exn (interp (binopC (appendO) (numC 1) (numC 1)) empty-env)
-          "interp: bad operands in ( ++ numV numV ) ")
-(test/exn (interp (binopC (numeqO) (strC "ok") (strC "ok")) empty-env)
-          "interp: bad operands in ( num= strV strV ) ")
-(test/exn (interp (binopC (streqO) (numC 1) (numC 1)) empty-env)
-          "interp: bad operands in ( str= numV numV ) ")
+(test/exn (interp-h (binopC (plusO) (numC 1) (boolC #t)) empty-env)
+          "interp-h: type-check failed, numV vs. boolV in + ")
+(test/exn (interp-h (binopC (appendO) (strC "ok") (boolC #t)) empty-env)
+          "interp-h: type-check failed, strV vs. boolV in ++ ")
+(test/exn (interp-h (binopC (numeqO) (numC 1) (strC "ok")) empty-env)
+          "interp-h: type-check failed, numV vs. strV in num= ")
+(test/exn (interp-h (binopC (streqO) (numC 1) (strC "ok")) empty-env)
+          "interp-h: type-check failed, numV vs. strV in str= ")
+(test/exn (interp-h (binopC (plusO) (strC "ok") (strC "ok")) empty-env)
+          "interp-h: bad operands in ( + strV strV ) ")
+(test/exn (interp-h (binopC (appendO) (numC 1) (numC 1)) empty-env)
+          "interp-h: bad operands in ( ++ numV numV ) ")
+(test/exn (interp-h (binopC (numeqO) (strC "ok") (strC "ok")) empty-env)
+          "interp-h: bad operands in ( num= strV strV ) ")
+(test/exn (interp-h (binopC (streqO) (numC 1) (numC 1)) empty-env)
+          "interp-h: bad operands in ( str= numV numV ) ")
 
-;; interp ifC
-(test (interp (ifC (boolC #t)
+;; interp-h ifC
+(test (interp-h (ifC (boolC #t)
                    (binopC (plusO) (numC 1) (numC 2))
                    (binopC (appendO) (strC "ok") (strC "google"))) empty-env)
       (numV 3))
-(test (interp (ifC (boolC #t)
+(test (interp-h (ifC (boolC #t)
                    (binopC (plusO) (numC 1) (numC 2))
                    (binopC (appendO) (idC 'x) (idC 'y))) empty-env)
       (numV 3))
-(test (interp (ifC (boolC #f)
+(test (interp-h (ifC (boolC #f)
                    (binopC (plusO) (numC 1) (numC 2))
                    (binopC (appendO) (strC "ok") (strC "google"))) empty-env)
       (strV "okgoogle"))
-(test/exn (interp (ifC (numC 1)
+(test/exn (interp-h (ifC (numC 1)
                        (binopC (plusO) (numC 1) (numC 2))
                        (binopC (appendO) (strC "ok") (strC "google"))) empty-env)
-          "interp: bad conditional numV ")
+          "interp-h: bad conditional numV ")
 
-;; interp fun
+;; interp-h fun
 
-(test (interp (funC 'x (binopC (plusO) (idC 'x) (idC 'x))) empty-env)
+(test (interp-h (funC 'x (binopC (plusO) (idC 'x) (idC 'x))) empty-env)
       (funV 'x (binopC (plusO) (idC 'x) (idC 'x))))
 
-(test (interp (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
+(test (interp-h (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
               (list (bind 'x (numV 10))))
       (funV 'x (binopC (plusO) (idC 'x) (idC 'x))))
 
-;; interp apply function
+;; interp-h apply function
 
-(test (interp (appC
+(test (interp-h (appC
                (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
                (numC 10))
               empty-env)
       (numV 20))
 
-(test (interp (appC
+(test (interp-h (appC
                (funC 'x (binopC (plusO) (idC 'x) (idC 'x)))
                (numC 10))
               (list (bind 'x (numV 100))))
       (numV 20))
 
-(test (interp (appC (funC 'x (appC
+(test (interp-h (appC (funC 'x (appC
                               (funC 'y (binopC (plusO) (idC 'y) (idC 'y)))
                               (idC 'x)))
                     (numC 10))
               empty-env)
       (numV 20))
 
-(test/exn (interp (appC (idC 'f) (numC 10))
+(test/exn (interp-h (appC (idC 'f) (numC 10))
                   empty-env)
-          "interp: unbound identifier 'f")
+          "interp-h: unbound identifier 'f")
 
 

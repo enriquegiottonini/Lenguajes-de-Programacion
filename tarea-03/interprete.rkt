@@ -22,32 +22,32 @@
   (numeqO)
   (streqO))
 
-;; interp : ExprC -> Value
+;; interp-h : ExprC -> Value
 ;; post-orden
-(define (interp [e : ExprC] [env : Environment]) : Value
+(define (interp-h [e : ExprC] [env : Environment]) : Value
   (type-case ExprC e
     [(numC n) (numV n)]
     [(strC s) (strV s)]
     [(idC name) (lookup name env)]
     [(boolC b) (boolV b)]
-    [(binopC op l r) (interp-binopC op l r env)]
-    [(ifC cond conseq alt) (let ([cndval (interp cond env)])
+    [(binopC op l r) (interp-h-binopC op l r env)]
+    [(ifC cond conseq alt) (let ([cndval (interp-h cond env)])
                              (if (boolV? cndval)
                                  (if (boolV-b cndval)
-                                     (interp conseq env)
-                                     (interp alt env)) 
+                                     (interp-h conseq env)
+                                     (interp-h alt env)) 
                                  (error-bad-conditional (get-variant-value cndval))))]
     [(funC param body) (funV param body)]
-    [(appC procedure arg) (let ([fun (interp procedure env)])
+    [(appC procedure arg) (let ([fun (interp-h procedure env)])
                             (if (funV? fun)
                                 (let ([param (funV-param fun)]
                                       [body  (funV-body fun)])
-                                  (interp body (extend-env (bind param (interp arg env)) env)))
-                                (error 'interp "not a function.")))]))
+                                  (interp-h body (extend-env (bind param (interp-h arg env)) env)))
+                                (error 'interp-h "not a function.")))]))
 
-(define (interp-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
-  (let ([lval (interp l env)]
-        [rval (interp r env)])
+(define (interp-h-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
+  (let ([lval (interp-h l env)]
+        [rval (interp-h r env)])
     (let ([ltype (get-variant-value lval)]
           [rtype (get-variant-value rval)]
           [optype (get-op-symbol op)])
@@ -124,20 +124,21 @@
     [(orS l r) (ifC (desugar l) (boolC #t) (ifC (desugar r) (boolC #t) (boolC #f)))]
     [(letS name value body) (appC (funC name (desugar body)) (desugar value))]))
 
-(define (eval [str : S-Exp]) : Value
-  (interp (desugar (parse str)) empty-env))
+(define (interp [e : ExprC])
+  (interp-h e empty-env))
 
-;; usar hash inmutables y luego mutables?
+(define (eval [str : S-Exp]) : Value
+  (interp (desugar (parse str))))
 
 ;; ERRORES
 (define (error-bad-conditional [val : Symbol])
-  (error 'interp
+  (error 'interp-h
          (write (list
                  "bad conditional"
                  (symbol->string val)))))
 
 (define (error-typecheck-binop [op : Symbol] [val1 : Symbol] [val2 : Symbol])
-  (error 'interp
+  (error 'interp-h
          (write (list
                  "type-check failed,"
                  (symbol->string val1)
@@ -147,7 +148,7 @@
                  (symbol->string op)))))
 
 (define (error-bad-operands [op : Symbol] [val1 : Symbol] [val2 : Symbol])
-  (error 'interp
+  (error 'interp-h
          (write (list
                  "bad operands in"
                  "("
@@ -164,13 +165,13 @@
             
 
 (define (error-unbound-id [id : Symbol])
-  (error 'interp
+  (error 'interp-h
          (string-append
           "unbound identifier '"
           (symbol->string id))))
 
 (define (error-bad-proc [name : String])
-  (error 'interp
+  (error 'interp-h
          (string-append
           name " not a function.")))
 
