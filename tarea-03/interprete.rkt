@@ -219,7 +219,8 @@
     [(s-exp-match? `{ANY ...} in)
      (parse-app in)]
     [(s-exp-symbol? in)
-     (parse-id in)]))
+     (parse-id in)]
+    [else (error 'parse "expresión malformada")]))
 
 (define (parse-number in)
   (numS (s-exp->number in)))
