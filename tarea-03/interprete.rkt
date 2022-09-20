@@ -1,11 +1,12 @@
 #lang plait
-
+;; Value
 (define-type Value
   (numV  [n : Number])
   (boolV [b : Boolean])
   (strV  [s : String])
-  (funV [param : Symbol] [body : ExprC]))
+  (funV [param : Symbol] [body : ExprC] [fenv : Environment]))
 
+;; ExprC
 (define-type ExprC
   (numC [n : Number])
   (strC [s : String])
@@ -23,7 +24,6 @@
   (streqO))
 
 ;; interp-h : ExprC -> Value
-;; post-orden
 (define (interp-h [e : ExprC] [env : Environment]) : Value
   (type-case ExprC e
     [(numC n) (numV n)]
@@ -36,14 +36,15 @@
                                  (if (boolV-b cndval)
                                      (interp-h conseq env)
                                      (interp-h alt env)) 
-                                 (error-bad-conditional (get-variant-value cndval))))]
-    [(funC param body) (funV param body)]
+                                 (error-bad-conditional-simple)))]
+    [(funC param body) (funV param body env)]
     [(appC procedure arg) (let ([fun (interp-h procedure env)])
                             (if (funV? fun)
                                 (let ([param (funV-param fun)]
-                                      [body  (funV-body fun)])
-                                  (interp-h body (extend-env (bind param (interp-h arg env)) env)))
-                                (error 'interp-h "not a function.")))]))
+                                      [body  (funV-body fun)]
+                                      [fenv (funV-fenv fun)])
+                                  (interp-h body (extend-env (bind param (interp-h arg env)) fenv)))
+                                (error-bad-proc-simple)))]))
 
 (define (interp-h-binopC [op : binops] [l : ExprC] [r : ExprC] [env : Environment])
   (let ([lval (interp-h l env)]
@@ -61,41 +62,25 @@
              (strV (string-append (strV-s lval) (strV-s rval)))]
             [(and (streqO? op) (strV? lval))
              (boolV (string=? (strV-s lval) (strV-s rval)))]
-            [else (error-bad-operands optype ltype rtype)])
-          (error-typecheck-binop optype ltype rtype)))))
-
-(define (get-variant-value [v : Value]) : Symbol
-  (cond
-    [(numV? v) 'numV]
-    [(boolV? v) 'boolV]
-    [(strV? v) 'strV]
-    [(funV? v) 'procV]))
-
-(define (get-op-symbol [op : binops]) : Symbol
-  (cond
-    [(plusO? op) '+]
-    [(numeqO? op) 'num=]
-    [(appendO? op) '++]
-    [(streqO? op) 'str=]))                   
+            [else (error-bad-operands-simple)])
+          (error-typecheck-binop-simple)))))                  
 
 ;; ENVIRONMENTS
-;; hacer pruebas con hash mutable e inmutable
 (define-type Binding
   (bind [id : Symbol] [value : Value]))
 (define-type-alias Environment (Listof Binding))
 (define empty-env empty)
 (define extend-env cons)
 
-;; lookup
+;; lookup : Symbol Environment -> Value
 (define (lookup [name : Symbol] (env : Environment)) : Value
   (if (empty? env)
-      (error-unbound-id name)
+      (error-unbound-id-simple)
       (if (eq? name (bind-id (first env)))
           (bind-value (first env))
           (lookup name (rest env)))))
 
-;; Como minimo contiene a ExprC, agrega and, or, let
-;; usar binops para +, ++, ==
+;; ExprS
 (define-type ExprS
   (numS [n : Number])
   (strS [s : String])
@@ -131,11 +116,37 @@
   (interp (desugar (parse str))))
 
 ;; ERRORES
+(define (write [l : (Listof String)])
+  (if (empty? l)
+      ""
+      (string-append (first l)
+                     (string-append " " (write (rest l))))))
+
+(define (get-variant-value [v : Value]) : Symbol
+  (cond
+    [(numV? v) 'numV]
+    [(boolV? v) 'boolV]
+    [(strV? v) 'strV]
+    [(funV? v) 'procV]))
+
+(define (get-op-symbol [op : binops]) : Symbol
+  (cond
+    [(plusO? op) '+]
+    [(numeqO? op) 'num=]
+    [(appendO? op) '++]
+    [(streqO? op) 'str=]))
+
+(define (error-bad-conditional-simple)
+  (error 'interp "no es un valor booleano"))
+
 (define (error-bad-conditional [val : Symbol])
   (error 'interp-h
          (write (list
                  "bad conditional"
                  (symbol->string val)))))
+
+(define (error-typecheck-binop-simple)
+  (error 'interp "argumento incorrecto"))
 
 (define (error-typecheck-binop [op : Symbol] [val1 : Symbol] [val2 : Symbol])
   (error 'interp-h
@@ -147,6 +158,9 @@
                  "in"
                  (symbol->string op)))))
 
+(define (error-bad-operands-simple)
+  (error 'interp "argumento incorrecto"))
+
 (define (error-bad-operands [op : Symbol] [val1 : Symbol] [val2 : Symbol])
   (error 'interp-h
          (write (list
@@ -156,13 +170,9 @@
                  (symbol->string val1)
                  (symbol->string val2)
                  ")"))))
-
-(define (write [l : (Listof String)])
-  (if (empty? l)
-      ""
-      (string-append (first l)
-                     (string-append " " (write (rest l))))))
             
+(define (error-unbound-id-simple)
+  (error 'interp "identificador no está enlazado"))
 
 (define (error-unbound-id [id : Symbol])
   (error 'interp-h
@@ -170,11 +180,15 @@
           "unbound identifier '"
           (symbol->string id))))
 
+(define (error-bad-proc-simple)
+  (error 'interp "no es una función"))
+  
 (define (error-bad-proc [name : String])
   (error 'interp-h
          (string-append
           name " not a function.")))
 
+;; PARSE
 (define (parse [in : S-Exp]) : ExprS
   (cond
     [(s-exp-number? in)
