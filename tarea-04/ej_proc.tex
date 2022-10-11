@@ -1,0 +1,221 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage[normalem]{ulem}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Ejercicios PROC}
+\author{ Enrique Giottonini }
+\date{Octubre 12, 2022}
+
+\begin{document}
+\maketitle	
+
+\section*{Exercise 3.19 [$\star$]}
+In many languages, procedures must be created and named at the same time. Modify the language of this section to have this property by replacing the \verb|proc| expression with a \verb|letproc| expression.
+
+\subsection*{Sintáxis Concreta y Abstracta}
+\begin{align*}
+\text{Expression} &::=  \text{\sout{proc (Identifier) Expression}} \\
+\text{Expression}	&::= \text{letproc Identifier (Identifier) Expression in Expression}
+\end{align*}
+
+\begin{center}
+(letproc-exp name param body exp1)
+\end{center}
+
+\subsection*{Semántica}
+
+\begin{lstlisting}
+(value-of (letproc-exp name param body exp1) env) =
+(value-of exp1 ([name = (procedure param body env)] env))
+\end{lstlisting}
+
+\section*{Exercise 3.20 [$\star$]}
+In \verb|PROC|, procedures have only one argument, but one can get the effect of multiple argument procedures by using procedures that return other procedures. For example, one might write code like
+\begin{lstlisting}
+let f = proc (x) proc (y) ...
+in ((f 3) 4)
+\end{lstlisting}
+This trick is called \textit{Currying}, and the procedure is said to be Curried.\textbf{ Write a Curried procedure} that takes two arguments and returns their sum. You can write x + y in
+our language by writing -(x, -(0, y)).
+\\
+\begin{lstlisting}
+let sum = proc (x)
+	   proc (y)
+	     -(x, -(0, y))
+in ((sum 3) 4)
+\end{lstlisting}
+
+\section*{Exercise 3.21 [$\star \star$]}
+Extend the language of this section to include procedures with multiple arguments and calls with multiple operands, as suggested by the grammar
+\begin{align*}
+\text{Expression}	&::= \text{proc } (\{\text{Identifier}\}^{*(,)}) \text{ Expression} \\
+\text{Expression} &::= \text{(Expression } \{\text{Expression}\}^{*(,)})
+\end{align*}
+
+\subsection*{Sintáxis Abstracta}
+\begin{center}
+(proc-exp params body) \\
+(call-exp fun args)
+\end{center}
+
+\subsection*{Semántica}
+\begin{lstlisting}[mathescape]
+(value-of (proc-exp params body) env)
+=
+(cond
+   [(empty? params) (proc-val (procedure unreach body env))]
+   [(= (length? params) 1) (proc-val (procedure (car params) body env))]
+   [else (proc-val (procedure
+                       (car params) 
+                       (proc-exp (cdr params) body) env)
+                       env)])                        
+        
+        
+(value-of (call-exp fun args) env)
+=
+(let ((proc (expval->proc (value-of fun env))))
+  (cond
+     [(empty? args) (value-of (procedure-body proc) (procedure-env proc))]
+     [(= (length? args) 1) (apply proc (value-of (car args) env))]
+     [else 
+        (value-of (call-exp (call-exp (car params)) (cdr params))]))                  
+\end{lstlisting}
+\newpage
+\section*{Exercise 3.23 [$\star \star$]}
+What is the value of the following \verb|PROC| program?
+\begin{lstlisting}[mathescape]
+$\lceil$ <<let makemult = proc (maker)
+	             proc (x)
+		       if zero?(x)
+		       then 0
+		       else -(((maker maker) -(x,1)), -4)
+        in let times4 = proc (x) ((makemult makemult) x)
+           in (times4 3)>> empty-env$\rceil$
+=
+$\lceil$ << let times4 = proc (x) ((makemult makemult) x)
+     in (times4 3)>> 
+     [makemult = (procedure 
+    		       maker
+    		       proc (x) if zero?(x)
+    			            then 0
+    			            else -(((maker maker) -(x,1)), -4)]
+    		       empty-env]$\rceil$
+=
+$\lceil$ << let times4 = proc (x) ((makemult makemult) x)
+     in (times4 3)>> 
+     makemult-env $\rceil$
+=
+$\lceil$ <<(times4 3)>>[times4 = (procedure 
+                                 x 
+                                 ((makemult makemult) x) 
+                                 makemult-env] makemult-env$\rceil$    
+## saltando directamente al return del apply-procedure ##
+=
+$\lceil$ <<((makemult makemult) x)>> [x=3] 
+				makemult-env$\rceil$
+=
+(apply (expval->proc
+           $\lceil$<<(makemult makemult)>>[x=3] makemult-env$\rceil$)
+       3)		
+=
+(apply (expval->proc
+           (apply (expval->proc $\lceil$<<makemult>>[x=3] makemult-env$\rceil$)
+                  $\lceil$<<makemult>>[x=3] makemult-env$\rceil$)
+       3)
+=
+(apply (expval->proc
+           (apply (procedure 
+    		       maker
+    		       proc (x) if zero?(x)
+    			        then 0
+    			        else -(((maker maker) -(x,1)), -4)
+    		       empty-env)
+           ...makemult))
+       3) 
+=
+(apply (expval->proc
+              $\lceil$<<proc (x) if zero?(x)
+    			  then 0
+                  else -(((maker maker) -(x,1)), -4)>>
+    	         [maker=...makemult]empty-env$\rceil$)
+       3)             
+=
+(- ($\lceil$ <<((maker maker))>> [x=2][maker=...makemult][x=3] makemult-env$\rceil$
+ -4)  
+=
+...
+=
+(- 0 
+ (- 4
+  (- 4 -4)))
+=
+12
+\end{lstlisting}
+\textbf{Use the tricks of this program to write a procedure for factorial in PROC. As a hint, remember that you can use Currying (exercise 3.20) to deﬁne a two-argument procedure} \verb|times|. \\ \\
+Sea la función \verb|times| :  $\mathrm{N}\to \mathrm{N}$\\
+y un entorno: 
+\begin{lstlisting}[mathescape]
+$\rho$ = [times = (procedure
+                    x
+                    proc (y)
+                      (((maketimes maketimes) x) y)
+                    empty-env)
+     maketimes = (procedure
+                        maker
+                        proc (x)
+                          proc (y)
+                            if zero? (y)
+                            then 0
+                            else (- x (- 0 ((maker maker) (- y 1))))]
+                          
+                        
+\end{lstlisting}                 
+     
+Una expresíon que usa factorial en un entorno $\rho$                   
+\begin{lstlisting}[mathescape]              
+let makefact = proc (maker)
+                 proc (x)
+                   if zero? (x)
+                   then 1
+                   else ((times x) ((maker maker) (- x 1)))
+in let fact = proc (x) ((makefact makefact) x)
+   in (fact 5)                   
+\end{lstlisting}
+
+\section*{Exercise 3.25 [$\star $]}
+The tricks of the previous exercises can be generalized to show that we can deﬁne any recursive procedure in PROC. Consider the following bit of code:
+
+\begin{lstlisting}[mathescape]
+let makerec = proc (f)
+                 let d = proc (x)
+                          proc (z) ((f (x x)) z)
+                 in proc (n) ((f (d d)) n)
+in let maketimes4 = proc (f)
+                      proc (x)
+                        if zero?(x)
+                        then 0
+                        else -((f -(x,1)), -4)
+   in let times4 = (makerec maketimes4)
+      in (times4 3)                        
+\end{lstlisting}                 
+Show that it returns 12. \\ \\
+
+\noindent \verb|makerec| es el combinador Y, permite obtener la recursión de cualquier procedimiento. \\
+\noindent \verb|maketimes| es un procedimento  \textit{curryficado} recursivo para obtener la multiplicación a partir de la suma.  \\
+\noindent \verb|times4| aplica el combinador Y a \verb|maketimes| para hacerlo recursivo. \\
+
+Mostrar que el valor del programa es 12 requiere que se apliquen las reglas sémanticas, que sería como resolver ecuaciones sustituyendo, de la misma forma que en el Ejercicio 3.23.
+\end{document}
+
