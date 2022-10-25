@@ -1,0 +1,86 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage[normalem]{ulem}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Tarea 06 - EXPLICIT REFS}
+\author{ Enrique Giottonini }
+\date{Octubre 26, 2022}
+
+\begin{document}
+\maketitle	
+
+\section*{Exercise 4.8 [$\star$]}
+Show exactly where in our implementation of the store these operations take linear time rather than constant time.
+
+\subsection*{Sintáxis Concreta y Abstracta}
+\begin{align*}
+\text{Expression} &::=  \text{\sout{proc (Identifier) Expression}} \\
+\text{Expression}	&::= \text{letproc Identifier (Identifier) Expression in Expression}
+\end{align*}
+
+\begin{center}
+(letproc-exp name param body exp1)
+\end{center}
+
+\subsection*{Semántica}
+
+\begin{lstlisting}
+(value-of (letproc-exp name param body exp1) env) =
+(value-of exp1 ([name = (procedure param body env)] env))
+\end{lstlisting}
+
+\section*{Exercise 4.9 [$\star$]}
+Implement the store in constant time by representing it as a Scheme
+vector. What is lost by using this representation?
+
+\section*{Exercise 4.10 [$\star$]}
+Implement the begin expression as speciﬁed in exercise 4.4.
+
+\section*{Exercise 4.11 [$\star$]}
+Implement list from exercise 4.5.
+
+\section*{Exercise 4.12 [$\star \star \star$]}
+Our understanding of the store, as expressed in this interpreter,
+depends on the meaning of effects in Scheme. In particular, it depends on us knowing
+when these effects take place in a Scheme program. We can avoid this dependency by
+writing an interpreter that more closely mimics the speciﬁcation. In this interpreter,
+value-of would return both a value and a store, just as in the speciﬁcation. A fragment of this interpreter appears in ﬁgure 4.6. We call this a store-passing interpreter.
+Extend this interpreter to cover all of the language EXPLICIT-REFS.
+Every procedure that might modify the store returns not just its usual value but also a
+new store. These are packaged in a data type called answer. Complete this deﬁnition
+of value-of.
+
+\begin{lstlisting}
+(newref-exp (exp1)
+  (let ((v1 (value-of exp1 env)))
+        (ref-val (newref v1))))
+        
+(deref-exp (exp1)
+  (let ((v1 (value-of exp1 env)))
+    (let ((ref1 (expval->ref v1)))
+      (deref ref1))))
+      
+(setref-exp (exp1 exp2)
+  (let ((ref (expval->ref (value-of exp1 env))))
+    (let ((val2 (value-of exp2 env)))
+      (begin
+        (setref! ref val2)
+        (num-val 23)))))
+\end{lstlisting}
+
+\section*{Exercise 4.13 [$\star \star \star$]}
+Extend the interpreter of the preceding exercise to have procedures of multiple arguments.
+\end{document}
+
