@@ -255,13 +255,36 @@ Expresión:
 (struct procedure (var body saved-env)
   #:transparent)
 
-(define (apply-procedure proc val)
+(define (apply-procedure proc val s)
   (unless (procedure? proc)
     (error 'value-of "no es un procedimiento: ~e" proc))
   (let ([var (procedure-var proc)]
         [body (procedure-body proc)]
         [saved-env (procedure-saved-env proc)])
-    (value-of body (extend-env var val saved-env))))
+    (value-of body (extend-env var val saved-env) s)))
+
+;;;;;;;;;;;;
+;; STORE  ;;
+;;;;;;;;;;;;
+
+(define (empty-store)
+  null)
+
+(define the-store (empty-store))
+
+(define (get-store)
+  the-store)
+
+(define (initialize-store!)
+  (set! the-store (empty-store)))
+
+;;;;;;;;;;;;;;;;;;
+;; COMPUTATION  ;;
+;;;;;;;;;;;;;;;;;;
+(struct computation (val store)
+  #:transparent)
+
+
 
 ;;;;;;;;;;;;;;;
 ;; SEMÁNTICA ;;
@@ -271,9 +294,11 @@ Expresión:
 
 VALORES EXPRESADOS Y DENOTADOS
 
-ExpVal = Int + Bool + Proc
-DenVal = Int + Bool + Proc
+ExpVal = Int + Bool + Proc + Ref(ExpVal)*
+DenVal = ExpVal
 
+*Here Ref(ExpVal) means the set of references to locations that contain
+expressed values.
 |#
 
 (struct num-val (num)
@@ -306,88 +331,122 @@ DenVal = Int + Bool + Proc
 #|
 
 ESPECIFICACIONES SEMÁNTICAS
-
-(value-of (const-exp n) env) = (num-val n)
-
-(value-of (var-exp var) env) = (apply-env env var)
-
-(value-of (diff-exp exp1 exp2) env)
- = (num-val
-    (- (expval->num (value-of exp1 env))
-       (expval->num (value-of exp2 env))))
-
-(value-of (zero?-exp exp1) env)
- = (if (equal? 0 (expval->num (value-of exp1 env)))
-       (bool-val #t)
-       (bool-val #f))
-
-(value-of (if-exp exp1 exp2 exp3) env)
- = (if (expval->bool (value-of exp1 env))
+------------------------------------------------------------
+(value-of (const-exp n) env s) = ((num-val n), s)
+------------------------------------------------------------
+(value-of (var-exp var) env s) = ((apply-env env var) s)
+------------------------------------------------------------
+(value-of (diff-exp exp1 exp2) env s) = (diffval, s2)
+where:
+(val1, s1) = (value-of exp1 env s)
+(val2, s2) = (value-of exp2 env s1)
+diffval = (num-val
+          (- (expval->num val1)
+             (expval->num val2)))
+------------------------------------------------------------
+(value-of (zero?-exp exp1) env s)
+ = (if (equal? 0 (expval->num val1))
+       (bool-val #t s1)
+       (bool-val #f s1))
+where:
+(val1, s1) = (value-of exp1 env s)
+------------------------------------------------------------
+(value-of (if-exp exp1 exp2 exp3) env s)
+ = (if (expval->bool val1)
        (value-of exp2 env)
        (value-of exp3 env))
-
+where:
+(val1 s1) = (value-of exp1 env s)
+------------------------------------------------------------
 (value-of (let-exp var exp1 body) env)
- = (value-of body (extend-env var (value-of exp1 env) env))
-
-(value-of (proc-exp var body) env)
+ = (value-of body (extend-env var val1 env) s1)
+where:
+(val1, s1) = (value-of exp1 env s)
+------------------------------------------------------------
+(value-of (proc-exp var body) env s)
  = (proc-val (procedure var body env))
-
-(value-of (call-exp rator rand) env)
- = (let ([proc (expval->proc (value-of rator env))]
-         [arg (value-of rand env)])
+------------------------------------------------------------
+(value-of (call-exp rator rand) env s)
+ = (let ([proc (expval->proc val1)]
+         [arg val2])
      (apply-procedure proc arg))
-
+where:
+(val1, s1) = (value-of rator env s)
+(val2, s2) = (value-of rand env s1)
+------------------------------------------------------------
 |#
 
-(define (value-of exp env)
+(define (value-of exp env s)
   (cond
     [(const-exp? exp)
      (let ([n (const-exp-num exp)])
-       (num-val n))]
+       (computation (num-val n) s))]
     [(var-exp? exp)
      (let ([var (var-exp-var exp)])
-       (apply-env env var))]
+       (computation (apply-env env var) s))]
     [(diff-exp? exp)
-     (let ([exp1 (diff-exp-exp1 exp)]
-           [exp2 (diff-exp-exp2 exp)])
-       (num-val
-        (- (expval->num (value-of exp1 env))
-           (expval->num (value-of exp2 env)))))]
+     (let* ([exp1 (diff-exp-exp1 exp)]
+            [exp2 (diff-exp-exp2 exp)]
+            [comp1 (value-of exp1 env s)]
+            [val1 (computation-val comp1)]
+            [store1 (computation-store comp1)]
+            [comp2 (value-of exp2 env store1)]
+            [val2 (computation-val comp2)]
+            [store2 (computation-store comp2)])
+       (computation (num-val
+                     (- (expval->num val1)
+                        (expval->num val2))) store2))]
     [(zero?-exp? exp)
-     (let ([exp1 (zero?-exp-exp1 exp)])
-       (if (equal? 0 (expval->num (value-of exp1 env)))
-           (bool-val #t)
-           (bool-val #f)))]
+     (let* ([exp1 (zero?-exp-exp1 exp)]
+            [comp1 (value-of exp1 env s)]
+            [val1 (computation-val comp1)]
+            [store1 (computation-store comp1)])
+       (if (equal? 0 (expval->num val1))
+           (computation (bool-val #t) store1)
+           (computation (bool-val #f) store1)))]
     [(if-exp? exp)
-     (let ([exp1 (if-exp-exp1 exp)]
-           [exp2 (if-exp-exp2 exp)]
-           [exp3 (if-exp-exp3 exp)])
-       (if (expval->bool (value-of exp1 env))
-           (value-of exp2 env)
-           (value-of exp3 env)))]
+     (let* ([exp1 (if-exp-exp1 exp)]
+            [exp2 (if-exp-exp2 exp)]
+            [exp3 (if-exp-exp3 exp)]
+            [comp1 (value-of exp1 env s)]
+            [val1 (computation-val comp1)]
+            [store1 (computation-store comp1)])
+       (if (expval->bool val1)
+           (value-of exp2 env store1)
+           (value-of exp3 env store1)))]
     [(let-exp? exp)
-     (let ([var (let-exp-var exp)]
-           [exp1 (let-exp-exp1 exp)]
-           [body (let-exp-body exp)])
-       (value-of body (extend-env var (value-of exp1 env) env)))]
+     (let* ([var (let-exp-var exp)]
+            [exp1 (let-exp-exp1 exp)]
+            [body (let-exp-body exp)]
+            [comp1 (value-of exp1 env s)]
+            [val1 (computation-val comp1)]
+            [store1 (computation-store comp1)])
+       (value-of body (extend-env var val1) env store1))]
     [(proc-exp? exp)
      (let ([var (proc-exp-var exp)]
            [body (proc-exp-body exp)])
-       (proc-val (procedure var body env)))]
+       (computation (proc-val (procedure var body env))
+                    s))]
     [(call-exp? exp)
      (let ([rator (call-exp-rator exp)]
            [rand (call-exp-rand exp)])
-       (let ([proc (expval->proc (value-of rator env))]
-             [arg (value-of rand env)])
-         (apply-procedure proc arg)))]
+       (let* ([comp1 (value-of rator env s)]
+              [vrator (computation-val comp1)]
+              [store1 (computation-store comp1)]
+              [proc (expval->proc vrator)]
+              [comp2 (value-of rand env store1)]
+              [varg (computation-val comp2)]
+              [store2 (computation-store comp2)]
+              [arg varg])
+         (apply-procedure proc arg store2)))]
     [(letrec-exp? exp)
      (let ([p-name (letrec-exp-p-body exp)]
            [b-var (letrec-exp-b-var exp)]
            [p-body (letrec-exp-p-body exp)]
            [letrec-body (letrec-exp-letrec-body exp)])
-       (value-of letrec-body (extend-env-rec p-name b-var p-body env)))]
+       (value-of letrec-body (extend-env-rec p-name b-var p-body env) s))]
     [else
-     (error 'value-of "no es una expresión: ~e" exp)]))
+     ((error 'value-of "no es una expresión: ~e" exp))]))
 
 (define (init-env)
   (foldl (lambda (binding env)
@@ -403,7 +462,7 @@ ESPECIFICACIONES SEMÁNTICAS
 (define (value-of-program pgm)
   (if (program? pgm)
       (let ([exp1 (a-program-exp1 pgm)])
-        (value-of exp1 (init-env)))
+        (value-of exp1 (init-env) (get-store)))
       (error 'value-of-program "no es un programa: ~e" pgm)))
 
 (define (run sexp)
