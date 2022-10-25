@@ -19,7 +19,7 @@ Expression := Identifier
 Expression := let Identifier = Expression in Expression
 Expression := proc (Identifier) Expression
 Expression := (Expression Expression)
-Expression := letrec Identifier(Identifier) = Expression in Expression
+Expression := letrec Identifier (Identifier) = Expression in Expression
 Expression := newref (Expression)
 Expression := deref (Expression)
 Expression := setref (Expression , Expression)
@@ -120,9 +120,11 @@ Expresión:
        [(let) (parse-let x)]
        [(proc) (parse-proc x)]
        [(letrec) (parse-letrec x)]
+       [(newref) (parse-newref x)]
+       [(deref) (parse-deref x)]
+       [(setref) (parse-setref x)]
        [else
-        (if (and (list? x)
-                 (= 2 (length x)))
+        (if (= 2 (length x))
             (parse-call x)
             (error 'parse "expresión no es válida: ~e" x))])]
     [else
@@ -182,8 +184,42 @@ Expresión:
   (call-exp (parse-expression (first x))
             (parse-expression (second x))))
 
+;; parse-letrec : pair? -> letrec-exp?
+;; x es un par de la forma (letrec . _)
 (define (parse-letrec x)
-  (error 'parse-letrec "no llames al parser por favo': ~e" x))
+  (unless (= (length x) 5)
+    (error 'parse "expresión no es válida: ~e" x))
+  (let ([p-name (second x)]
+        [b-var (third x)])
+    (unless (= (length b-var) 1)
+      (error 'parse "expresión no es válida: ~e" x))
+    (unless (and (symbol? p-name) (symbol? (first b-var)))
+      (error 'parse "expresión no es válida: ~e" x))
+    (letrec-exp p-name
+                (first b-var)
+                (parse-expression (fourth x))
+                (parse-expression (fifth x)))))
+
+;; parse-newref : pair? -> newref-exp
+;; x es un par de la forma (newref . _)
+(define (parse-newref x)
+  (unless (= (length x) 2)
+    (error 'parse "expresión no es válida: ~e" x))
+  (newref-exp (parse-expression (second x))))
+
+;; parse-deref : pair? -> deref-exp
+;; x es un par de la forma (deref . _)
+(define (parse-deref x)
+  (unless (= (length x) 2)
+    (error 'parse "expresión no es válida: ~e" x))
+  (deref-exp (parse-expression (second x))))
+
+;; parse-setref : pair? -> setref-exp
+;; x es un par de la forma (setref . _)
+(define (parse-setref x)
+  (unless (= (length x) 3)
+    (error 'parse "expresión no es válida: ~e" x))
+  (setref-exp (parse-expression (second x)) (parse-expression (third x))))
 
 ;;;;;;;;;;;;;;
 ;; ENTORNOS ;;
