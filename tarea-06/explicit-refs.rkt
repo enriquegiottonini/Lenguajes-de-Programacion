@@ -494,7 +494,7 @@ where:
             [loc (expval->num val1)])
        (if (or
             (empty? (get-store))
-            (< 0 loc)
+            (< loc 0)
             (<= (length the-store) loc))
            (error 'deref-exp "no se puede encontrar la locación ~e" loc)
            (computation (list-ref the-store loc) s1)))]
@@ -510,7 +510,7 @@ where:
             [loc (expval->num val1)])
              (if (or
                   (empty? (get-store))
-                  (< 0 loc)
+                  (< loc 0)
                   (<= (length the-store) loc))
                  (error 'deref-exp "no se puede encontrar la locación ~e" loc)
                  (begin

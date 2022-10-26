@@ -46,7 +46,11 @@
                                          "deref-exp: no se puede encontrar la locación 0"))
              (check-equal? (run `(let (x (newref 9))
                                    (deref 0)))
-                           (computation (num-val 9) (list (num-val 9)))))
+                           (computation (num-val 9) (list (num-val 9))))
+             (check-equal? (run `(let (x (newref 9))
+                                   (let (y (newref 10))
+                                     (deref y))))
+                           (computation (num-val 10) (list (num-val 9) (num-val 10)))))
 
   (test-case "setref-exp"
              (check-exn exn:fail? (thunk (run `(setref 0))
