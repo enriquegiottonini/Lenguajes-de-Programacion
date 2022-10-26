@@ -267,16 +267,22 @@ Expresión:
 ;; STORE  ;;
 ;;;;;;;;;;;;
 
+;; empty-store : () -> Sto
 (define (empty-store)
   null)
 
-(define the-store (empty-store))
+(define the-store 'dummy-init)
 
+;; get-store : () -> Sto
 (define (get-store)
   the-store)
 
 (define (initialize-store!)
   (set! the-store (empty-store)))
+
+;; reference : RacketVal -> Bool
+(define (reference? v)
+  (integer? v))
 
 ;;;;;;;;;;;;;;;;;;
 ;; COMPUTATION  ;;
@@ -308,7 +314,11 @@ expressed values.
               (error type-name "no es un número: ~e" num))
             num))
 
-(define expval->num num-val-num)
+(define expval->num
+  (lambda (ev)
+    (cond
+      [(num-val? ev) (num-val-num ev)]
+      [(ref-val? ev) (ref-val-ref ev)])))
 
 (struct bool-val (bool)
   #:transparent
@@ -327,6 +337,15 @@ expressed values.
             proc))
 
 (define expval->proc proc-val-proc)
+
+(struct ref-val (ref)
+  #:transparent
+  #:guard (lambda (ref type-name)
+            (unless (reference? ref)
+              (error type-name "no es una referencia ~e" ref))
+            ref))
+
+(define expval->ref ref-val-ref)
 
 #|
 
@@ -373,6 +392,15 @@ where:
 where:
 (val1, s1) = (value-of rator env s)
 (val2, s2) = (value-of rand env s1)
+------------------------------------------------------------
+
+------------------------------------------------------------
+(value-of (newref-exp exp1) env s) = ((ref-val loc), [loc=val]s1)
+where:
+(value-of exp1 env s) = (val, s1) and
+l \not \in dom(s1)
+------------------------------------------------------------
+ok
 ------------------------------------------------------------
 |#
 
@@ -421,7 +449,7 @@ where:
             [comp1 (value-of exp1 env s)]
             [val1 (computation-val comp1)]
             [store1 (computation-store comp1)])
-       (value-of body (extend-env var val1) env store1))]
+       (value-of body (extend-env var val1 env) store1))]
     [(proc-exp? exp)
      (let ([var (proc-exp-var exp)]
            [body (proc-exp-body exp)])
@@ -445,6 +473,14 @@ where:
            [p-body (letrec-exp-p-body exp)]
            [letrec-body (letrec-exp-letrec-body exp)])
        (value-of letrec-body (extend-env-rec p-name b-var p-body env) s))]
+    [(newref-exp? exp)
+     (let* ([exp1 (newref-exp-exp1 exp)]
+            [next-ref (length the-store)]
+            [cmp1 (value-of exp1 env s) ]
+            [val1 (computation-val cmp1)]
+            [s1 (computation-store cmp1)])
+       (set! the-store (append the-store (list val1)))
+       (computation (ref-val next-ref) the-store))]
     [else
      ((error 'value-of "no es una expresión: ~e" exp))]))
 
@@ -462,6 +498,7 @@ where:
 (define (value-of-program pgm)
   (if (program? pgm)
       (let ([exp1 (a-program-exp1 pgm)])
+        (initialize-store!)
         (value-of exp1 (init-env) (get-store)))
       (error 'value-of-program "no es un programa: ~e" pgm)))
 
