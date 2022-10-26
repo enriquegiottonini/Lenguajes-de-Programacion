@@ -402,7 +402,10 @@ l \not \in dom(s1)
 where:
 (value-of exp env s) = (l, s1)
 ------------------------------------------------------------
-
+(value-of (setref-exp exp1 exp2) env s) = (val, [loc=val]s2)
+where:
+(value-of exp1 env s)  = (loc, s1)
+(value-of exp2 env s1) = (val, s2)
 ------------------------------------------------------------
 |#
 
@@ -495,8 +498,26 @@ where:
             (<= (length the-store) loc))
            (error 'deref-exp "no se puede encontrar la locación ~e" loc)
            (computation (list-ref the-store loc) s1)))]
-    [else
-     ((error 'value-of "no es una expresión: ~e" exp))]))
+    [(setref-exp? exp)
+     (let* ([exp1 (setref-exp-exp1 exp)]
+            [exp2 (setref-exp-exp2 exp)]
+            [cmp1 (value-of exp1 env s)]
+            [val1 (computation-val cmp1)]
+            [s1 (computation-store cmp1)]
+            [cmp2 (value-of exp2 env s1)]
+            [val2 (computation-val cmp2)]
+            [s2 (computation-store cmp2)]
+            [loc (expval->num val1)])
+             (if (or
+                  (empty? (get-store))
+                  (< 0 loc)
+                  (<= (length the-store) loc))
+                 (error 'deref-exp "no se puede encontrar la locación ~e" loc)
+                 (begin
+                   (set! the-store (list-set the-store loc val2))
+                   (computation val2 the-store))))]
+[else
+ ((error 'value-of "no es una expresión: ~e" exp))]))
 
 (define (init-env)
   (foldl (lambda (binding env)

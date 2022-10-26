@@ -45,8 +45,18 @@
              (check-exn exn:fail? (thunk (run `(deref -1))
                                          "deref-exp: no se puede encontrar la locación 0"))
              (check-equal? (run `(let (x (newref 9))
-                                  (deref 0)))
-                          (computation (num-val 9) (list (num-val 9)))))
+                                   (deref 0)))
+                           (computation (num-val 9) (list (num-val 9)))))
+
+  (test-case "setref-exp"
+             (check-exn exn:fail? (thunk (run `(setref 0))
+                                         "deref-exp: no se puede encontrar la locación 0"))
+             (check-exn exn:fail? (thunk (run `(setref -1))
+                                         "deref-exp: no se puede encontrar la locación 0"))
+             (check-equal? (run `(let (x (newref 6))
+                                   (setref x 9)))
+                           (computation (num-val 9) (list  (num-val 9))))
+             )
   
   )
 (run-tests pruebas 'verbose)
