@@ -393,14 +393,16 @@ where:
 (val1, s1) = (value-of rator env s)
 (val2, s2) = (value-of rand env s1)
 ------------------------------------------------------------
-
-------------------------------------------------------------
 (value-of (newref-exp exp1) env s) = ((ref-val loc), [loc=val]s1)
 where:
 (value-of exp1 env s) = (val, s1) and
 l \not \in dom(s1)
 ------------------------------------------------------------
-ok
+(value-of (deref-exp exp1) env s) = (s1(loc), s1)
+where:
+(value-of exp env s) = (l, s1)
+------------------------------------------------------------
+
 ------------------------------------------------------------
 |#
 
@@ -481,6 +483,18 @@ ok
             [s1 (computation-store cmp1)])
        (set! the-store (append the-store (list val1)))
        (computation (ref-val next-ref) the-store))]
+    [(deref-exp? exp)
+     (let* ([exp1 (deref-exp-exp1 exp)]
+            [cmp1 (value-of exp1 env s)]
+            [val1 (computation-val cmp1)]
+            [s1 (computation-store cmp1)]
+            [loc (expval->num val1)])
+       (if (or
+            (empty? (get-store))
+            (< 0 loc)
+            (<= (length the-store) loc))
+           (error 'deref-exp "no se puede encontrar la locación ~e" loc)
+           (computation (list-ref the-store loc) s1)))]
     [else
      ((error 'value-of "no es una expresión: ~e" exp))]))
 

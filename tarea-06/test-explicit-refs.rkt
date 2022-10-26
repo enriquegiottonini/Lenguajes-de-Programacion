@@ -6,12 +6,12 @@
 
 (define-test-suite pruebas
   (test-case "parser"
-    (check-equal? (parse `(newref 0))
-                  (a-program (newref-exp (const-exp 0))))
-    (check-equal? (parse `(deref (newref 0)))
-                  (a-program (deref-exp (newref-exp (const-exp 0)))))
-    (check-equal? (parse `(setref some-loc some-val))
-                  (a-program (setref-exp (var-exp 'some-loc) (var-exp 'some-val)))))
+             (check-equal? (parse `(newref 0))
+                           (a-program (newref-exp (const-exp 0))))
+             (check-equal? (parse `(deref (newref 0)))
+                           (a-program (deref-exp (newref-exp (const-exp 0)))))
+             (check-equal? (parse `(setref some-loc some-val))
+                           (a-program (setref-exp (var-exp 'some-loc) (var-exp 'some-val)))))
 
   (test-case "const-exp"
              (check-equal? (run `1)
@@ -36,7 +36,17 @@
              (check-equal? (run `(let (x (newref 2))
                                    (let (y (newref 2))
                                      (- x y))))
-                           (computation (num-val -1) (list (num-val 2) (num-val 2)))))
+                           (computation (num-val -1) (list (num-val 2)
+                                                           (num-val 2)))))
 
+  (test-case "deref-exp"
+             (check-exn exn:fail? (thunk (run `(deref 0))
+                                         "deref-exp: no se puede encontrar la locación 0"))
+             (check-exn exn:fail? (thunk (run `(deref -1))
+                                         "deref-exp: no se puede encontrar la locación 0"))
+             (check-equal? (run `(let (x (newref 9))
+                                  (deref 0)))
+                          (computation (num-val 9) (list (num-val 9)))))
+  
   )
 (run-tests pruebas 'verbose)
