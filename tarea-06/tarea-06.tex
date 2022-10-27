@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage[normalem]{ulem}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Tarea 06 - EXPLICIT REFS}
+\author{ Enrique Giottonini, Miguel Navarro }
+\date{Octubre 26, 2022}
+
+\begin{document}
+\maketitle	
+
+
+\section*{Exercise 4.8 [$\star$]}
+Show exactly where in our implementation of the store these operations take linear time rather than constant time.\\
+\begin{itemize}
+
+
+\item En \textit{newref-exp} se utiliza \textit{append} el cual tiene un tiempo de ejecución dependiente de la cantidad de todos los argumentos en la lista (exceptuando el último) por lo que new-ref tiene tiempo de ejecución lineal. Esto siempre sucede.\\
+\item En \textit{deref-exp} se utiliza \textit{list-ref}, el cual tiene un tiempo de ejecución lineal por lo que \textit{deref-exp} tiene un tiempo de ejecución lineal. Esto sucede siempre y cuando el \textit{store} no es vacío y la referencia es válida.\\
+\item En \textit{setref-exp} se utiliza \textit{list-set} el cual tiene un tiempo de ejecución lineal por lo que \textit{setref-exp} tiene tiempo de ejecución lineal. Esto sucede siempre y cuando el \textit{store} no es vacío y la referencia es válida. \\
+\end{itemize}
+
+\section*{Exercise 4.9 [$\star$]}
+Implement the store in constant time by representing it as a Scheme
+vector. What is lost by using this representation? \\ \\
+El código se vuelve más complicado de entender, además por el uso de la estructura para el vector es más complicado manejar múltiples \textit{stores}.
+\newpage
+\section*{Exercise 4.10 [$\star$]}
+Implement the begin expression as speciﬁed in exercise 4.4.
+\subsection*{Sintáxis Concreta y Abstracta}
+\begin{align*}
+\text{Expression}	&::= \text{begin Expression \{; Expression\}*}
+\end{align*}
+
+\begin{center}
+(begin-exp exp exps)
+\end{center}
+
+\subsection*{Semántica}
+
+\begin{lstlisting}[mathescape]
+(value-of (begin-exp exp exps) env $\sigma$) =
+(if (null? exps)
+	(value-of exp env $\sigma$)
+	(value-of (begin-exp (first exps) (rest exps)) env $\sigma_1$))
+\end{lstlisting}
+Donde $\sigma_1$ es el \textit{store} resultante de:
+\begin{lstlisting}[mathescape]
+(value-of exp env $\sigma$) 
+\end{lstlisting}
+\section*{Exercise 4.11 [$\star$]}
+Implement list from exercise 4.5.
+\subsection*{Sintáxis Concreta y Abstracta}
+\begin{align*}
+\text{Expression}	&::= \text{list (Expression*)}
+\end{align*}
+
+\begin{center}
+(list exps)
+\end{center}
+
+\subsection*{Semántica}
+
+\begin{lstlisting}[mathescape]
+(value-of (list-exp exps) env $\sigma$) =
+(if (null? exps)
+	((null-val), $\sigma$)
+	((pair-val (cons $val_1$ $val_2$)), $\sigma_2$)))
+\end{lstlisting}
+Donde:
+\begin{lstlisting}[mathescape]
+(value-of (first exps) env $\sigma$) = ($val_1$, $\sigma _1$)
+(value-of (list-exp rest exps) env $\sigma_1$) = ($val_2$, $\sigma _2$)
+\end{lstlisting}
+
+\section*{Exercise 4.12 [$\star \star \star$]}
+Our understanding of the store, as expressed in this interpreter,
+depends on the meaning of effects in Scheme. In particular, it depends on us knowing
+when these effects take place in a Scheme program. We can avoid this dependency by
+writing an interpreter that more closely mimics the speciﬁcation. In this interpreter,
+value-of would return both a value and a store, just as in the speciﬁcation. A fragment of this interpreter appears in ﬁgure 4.6. We call this a store-passing interpreter.
+Extend this interpreter to cover all of the language EXPLICIT-REFS.
+Every procedure that might modify the store returns not just its usual value but also a
+new store. These are packaged in a data type called answer. Complete this deﬁnition
+of value-of. \\ \\
+
+\noindent Desde un principio la implementamos de esta forma, por tanto las pruebas y la implementación están explicit-refs.rkt, y test-explicit-refs.rkt.
+
+\section*{Exercise 4.13 [$\star \star \star$]}
+Extend the interpreter of the preceding exercise to have procedures of multiple arguments.
+\subsection*{Sintáxis Concreta y Abstracta}
+\begin{align*}
+\text{Expression} &::= \text{proc \{Expression\}}^+\text{ Expression} \\
+\text{Expression} &::= \text{(Expression \{Expression\}}^+\text{)}
+\end{align*}
+
+\begin{center}
+(proc-exp params body) \\
+(call-exp fun args)
+\end{center}
+
+\subsection*{Semántica}
+
+\begin{lstlisting}[mathescape]
+(value-of (proc-exp params body) env $\sigma$) = ((proc-val f), $\sigma$))
+
+where:
+
+f = (procedure $p_1$ p' env)
+params = $(p_1 \, \, p_2 \, \,  p_3 \, \, ...\, \,  p_n)$
+(proc-exp params body) = (proc-exp $p_1$ (proc-exp $p_2$ (... (proc-exp $p_n$ body))))
+p' = (proc-exp $p_2$ (proc-exp $p_3$ (... (proc-exp $p_n$ body)))
+
+
+(value-of (call-exp fun args) env s) = $(val_n, s_n)$
+
+where:
+args = $(a_1 \,\,a_2\,\, ... \,\,a_n)$
+(call-exp fun args) = (call-exp (call-exp (... (call-exp fun $a_1$) ...) $a_{n-1}$) $a_n$)))) 
+
+
+
+
+--------------------------------------------------------------------
+Usando las definiciones que ya teniamos anteriormente, sabemos que: 
+
+(value-of (call-exp rator rand) env $\sigma$)
+ = (let ([proc (expval->proc $val_1$)]
+         [arg $val_2$])
+     (apply-procedure proc arg $\sigma_2$)) 
+     
+where:
+$(val_1, \sigma_1)$ = (value-of rator env $\sigma$)
+$(val_2, \sigma_2)$ = (value-of rand env $\sigma_1$)
+
+(define (apply-procedure proc val $\sigma$)
+  (unless (procedure? proc)
+    (error 'value-of "no es un procedimiento: ~e" proc))
+  (let ([var (procedure-var proc)]
+        [body (procedure-body proc)]
+        [saved-env (procedure-saved-env proc)])
+    (value-of body (extend-env var val saved-env) $\sigma$)))
+---------------------------------------------------------------------
+
+(value-of (call-exp fun $a_1$) env $\sigma$) = ($val_1$, $\sigma_1$)
+(value-of (call-exp (proc->expval $val_1$) $a_2$) env $\sigma_1$) = ($val_2$, $\sigma_2$)
+...
+(value-of (call-exp (proc->expval $val_{n-1}$) $a_n$) env $\sigma_{n-1}$) = ($val_n$, $\sigma_n$)
+
+\end{lstlisting}
+
+\end{document}
+
