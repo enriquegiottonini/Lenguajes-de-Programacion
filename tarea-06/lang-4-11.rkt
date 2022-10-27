@@ -55,8 +55,7 @@ Expresión:
 
 (struct const-exp (num)
   #:transparent)
-(struct emptylist (null)
-  #:transparent)
+
 (struct diff-exp (exp1 exp2)
   #:transparent)
 
@@ -319,7 +318,7 @@ Expresión:
 
 VALORES EXPRESADOS Y DENOTADOS
 
-ExpVal = Int + Bool + Proc + Ref(ExpVal)*
+ExpVal = Int + Bool + Proc + Ref(ExpVal)* + Null + EmptyList + PairVal
 DenVal = ExpVal
 
 *Here Ref(ExpVal) means the set of references to locations that contain
@@ -366,6 +365,14 @@ expressed values.
 
 (define expval->ref ref-val-ref)
 
+(struct pair-val (exp)
+  #:transparent)
+
+(struct null-val (null)
+  #:transparent)
+
+(struct emptylist (null)
+  #:transparent)
 #|
 
 ESPECIFICACIONES SEMÁNTICAS
@@ -538,10 +545,10 @@ where:
     [(list-exp? exp)
      (let* ([exps (list-exp-exps exp)])
        (if (null? exps)
-            null
+            (null-val null)
            (let* ([val1 (value-of (first exps) env s)]
                   [s1 (computation-store val1)])
-             (cons val1 (value-of (list-exp (rest exps)) env s1)))))]
+             (pair-val (cons val1 (value-of (list-exp (rest exps)) env s1))))))]
     [(emptylist? exp)
      (computation (emptylist-null exp) the-store)]
 [else
