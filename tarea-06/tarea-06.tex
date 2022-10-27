@@ -15,15 +15,21 @@
 \headsep=0.25in
 
 \title{ Tarea 06 - EXPLICIT REFS}
-\author{ Enrique Giottonini }
+\author{ Enrique Giottonini, Miguel Navarro}
 \date{Octubre 26, 2022}
 
 \begin{document}
 \maketitle	
 
 \section*{Exercise 4.8 [$\star$]}
-Show exactly where in our implementation of the store these operations take linear time rather than constant time.
+Show exactly where in our implementation of the store these operations take linear time rather than constant time.\\
+\begin{itemize}
 
+
+\item En \textit{newref-exp} se utiliza \textit{append} el cual tiene un tiempo de ejecución dependiente de la cantidad de todos los argumentos en la lista (exceptuando el último) por lo que new-ref tiene tiempo de ejecución lineal. Esto siempre sucede.\\
+\item En \textit{deref-exp} se utiliza \textit{list-ref}, el cual tiene un tiempo de ejecución lineal por lo que \textit{deref-exp} tiene un tiempo de ejecución lineal. Esto sucede siempre y cuando el \textit{store} no es vacío y la referencia es válida.\\
+\item En \textit{setref-exp} se utiliza \textit{list-set} el cual tiene un tiempo de ejecución lineal por lo que \textit{setref-exp} tiene tiempo de ejecución lineal. Esto sucede siempre y cuando el \textit{store} no es vacío y la referencia es válida. \\
+\end{itemize}
 \subsection*{Sintáxis Concreta y Abstracta}
 \begin{align*}
 \text{Expression} &::=  \text{\sout{proc (Identifier) Expression}} \\
