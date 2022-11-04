@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage[normalem]{ulem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{float}
+
+% Colors for Non-Terminals in Grammar
+\newcommand\Program{\textcolor{Orange}{\textbf{Program}}}
+\newcommand\Expression{\textcolor{Red}{\textbf{Expression}}}
+\newcommand\Number{\textcolor{ForestGreen}{\textbf{Number}}}
+\newcommand\Identifier{\textcolor{BlueViolet}{\textbf{Identifier}}}
+\newcommand\Digit{\textcolor{Cerulean}{\textbf{Digit}}}
+\newcommand\Alphab{\textcolor{Tan}{\textbf{Alphabetic}}}
+
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\title{ Tarea 07 - El Lenguaje LETREC}
+\author{ Enrique Giottonini, Miguel Navarro }
+\date{Noviembre 09, 2022}
+
+\begin{document}
+\maketitle	
+
+\section*{Especificación del Lenguaje.}
+\subsection*{Sintáxis Concreta}
+\begin{table}[h]
+\begin{tabular}{lll}
+\Program    & :=  & \Expression \\ \\
+\Expression & :=  & \Number                                                           	\\
+            & $|$ & -(\Expression, \Expression)                                   		\\
+            & $|$ & zero? (\Expression)                                          	 	\\
+            & $|$ & if \Expression \, then \Expression \, else \Expression        		\\
+            & $|$ & \Identifier                                                  		\\
+            & $|$ & let \Identifier \, = \Expression \,  in \Expression           		\\
+            & $|$ & proc (\Identifier) \Expression                                		\\
+            & $|$ & (\Expression \, \Expression)                                  		\\
+            & $|$ & letrec \Identifier(\Identifier) = \Expression \, in \Expression  \\ \\
+\Digit      & :=  & 0 $|$  1 $|$ 2 $|$ 3 $|$ 4 $|$ 5 $|$ 6 $|$ 7 $|$ 8 $|$ 9      	\\ \\
+\Number     & :=  & \Digit                       		\\
+            & $|$ & \Digit \Number         				\\
+            & $|$ & \Digit \,.\Digit$\{\Digit\}^*$   \\ \\
+\Alphab     &  =  & [a-zA-Z]                         \\ \\
+\Identifier & :=  & \Alphab\Identifier                  \\
+            & $|$ & \Identifier$\{\Digit\}^*$           \\
+                                                       
+\end{tabular}
+\end{table}
+\newpage
+\subsection*{Sintáxis Abstracta (Notación de Racket)}
+\Program: \\
+- (a-program exp1) \\
+
+\noindent \Expression: \\
+- (const-exp num) \\
+- (diff-exp exp1 exp2) \\
+- (zero?-exp exp1) \\
+- (if-exp exp1 exp2 exp3) \\
+- (var-exp var) \\
+- (let-exp var exp1 body) \\
+- (proc-exp var body) \\ 
+- (call-exp rator rand) \\
+- (letrec-exp p-name b-var p-body letrec-body) \\
+
+\noindent \Number: \verb|Real|
+
+\noindent \Identifier: Versión limítada de \verb|Symbol|
+
+\subsection*{Semántica}
+
+\begin{lstlisting}[mathescape]
+(value-of (const-exp n) $\rho$) = (num-val n)
+
+(value-of (var-exp var) $\rho$) = (apply-$\rho$ $\rho$ var)
+
+(value-of (diff-exp exp1 exp2) $\rho$)
+ = (num-val
+    (- (expval->num (value-of exp1 $\rho$))
+       (expval->num (value-of exp2 $\rho$))))
+
+(value-of (zero?-exp exp1) $\rho$)
+ = (if (equal? 0 (expval->num (value-of exp1 $\rho$)))
+       (bool-val #t)
+       (bool-val #f))
+
+(value-of (if-exp exp1 exp2 exp3) $\rho$)
+ = (if (expval->bool (value-of exp1 $\rho$))
+       (value-of exp2 $\rho$)
+       (value-of exp3 $\rho$))
+
+(value-of (let-exp var exp1 body) $\rho$)
+ = (value-of body (extend-env var (value-of exp1 $\rho$) $\rho$))
+
+(value-of (proc-exp var body) $\rho$)
+ = (proc-val (procedure var body $\rho$))
+
+(value-of (call-exp rator rand) $\rho$)
+ = (let ([proc (expval->proc (value-of rator $\rho$))]
+         [arg (value-of rand $\rho$)])
+     (apply-procedure proc arg))
+     
+(value-of (letrec-exp proc-name bound-var proc-body letrec-body) $\rho$)
+ = (value-of letrec-body (extend-env-rec proc-name bound-var proc-body $\rho$))
+
+
+
+
+\end{lstlisting}
+
+\end{document}
+
