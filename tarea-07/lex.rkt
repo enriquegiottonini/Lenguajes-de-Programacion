@@ -57,12 +57,19 @@
   (lambda (src lexeme beg end)
     (token 'identifier (string->symbol lexeme) beg end)))
 
+(define reg-space
+  (reg-repeat 1 +inf.0 just-whitespace))
+
+(define (lex-space src lexeme beg end)
+  (lex-letrec src))
+
 (define lex-letrec
   (make-lexer
    'letrec
    (lex-rule reg-nat (lex-number))
    (lex-rule reg-float (lex-number))
    (lex-rule reg-id (lex-identifier))
+   (lex-rule reg-space lex-space)
    ;; common errors
    (lex-rule reg-almost-float lex-almost-float)
    ))
@@ -90,5 +97,6 @@
     (check-equal? (lex "0.5") '((number 0.5)))
     (check-equal? (lex "foo") '((identifier foo)))
     (check-equal? (lex "foo231") '((identifier foo231)))
+    (check-equal? (lex "1   foo 3 foo2   ") '((number 1) (identifier foo) (number 3) (identifier foo2)))
     
     )))
