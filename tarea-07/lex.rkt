@@ -8,7 +8,7 @@
 ;;;   MM     ,M   MM     ,M   ,P   `MM.  
 ;;; .JMMmmmmMMM .JMMmmmmMMM .MM:.  .:MMa.
 ;;; 
-;;; Lexical Analyzer for an arithmetic language
+;;; Lexical Analyzer for letrec language
 
 #lang racket/base
 
@@ -33,8 +33,6 @@
   (reg-union (reg-conc "." reg-nat)
              (reg-conc reg-nat ".")))
 
-
-
 (define (lex-number)
   (lambda (src lexeme beg end)
     (token 'number (string->number lexeme) beg end)))
@@ -48,13 +46,23 @@
          (pos-col beg)
          lexeme))
 
+(define reg-alphabetic
+  (reg-repeat 1 +inf.0 just-alphabetic))
 
+(define reg-id
+  (reg-conc reg-alphabetic
+            (reg-kleene reg-nat)))
+
+(define (lex-identifier)
+  (lambda (src lexeme beg end)
+    (token 'identifier (string->symbol lexeme) beg end)))
 
 (define lex-letrec
   (make-lexer
    'letrec
    (lex-rule reg-nat (lex-number))
    (lex-rule reg-float (lex-number))
+   (lex-rule reg-id (lex-identifier))
    ;; common errors
    (lex-rule reg-almost-float lex-almost-float)
    ))
@@ -68,7 +76,7 @@
 (define (lex str)
   (map (lambda (t)
          (list (token-name t) (token-value t)))
-  (lex-letrec* (open-input-string str))))
+       (lex-letrec* (open-input-string str))))
 
 (module+ test
   (run-tests
@@ -80,5 +88,7 @@
     (check-equal? (lex "025") '((number 25)))
     (check-equal? (lex "86420") '((number 86420)))
     (check-equal? (lex "0.5") '((number 0.5)))
+    (check-equal? (lex "foo") '((identifier foo)))
+    (check-equal? (lex "foo231") '((identifier foo231)))
     
     )))
