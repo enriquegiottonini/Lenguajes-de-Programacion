@@ -7,6 +7,7 @@
 \usepackage[normalem]{ulem}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{float}
+\usepackage{proof}
 
 % Colors for Non-Terminals in Grammar
 \newcommand\Program{\textcolor{Orange}{\textbf{Program}}}
@@ -59,15 +60,15 @@
 \newpage
 \subsection*{Sintáxis Abstracta (Notación de Racket)}
 \Program: \\
-- (a-program exp1) \\
+- (a-program $exp_1$) \\
 
 \noindent \Expression: \\
 - (const-exp num) \\
-- (diff-exp exp1 exp2) \\
-- (zero?-exp exp1) \\
-- (if-exp exp1 exp2 exp3) \\
+- (diff-exp $exp_1$ $exp_2$) \\
+- (zero?-exp $exp_1$) \\
+- (if-exp $exp_1$ $exp_2$ $exp_3$) \\
 - (var-exp var) \\
-- (let-exp var exp1 body) \\
+- (let-exp var $exp_1$ body) \\
 - (proc-exp var body) \\ 
 - (call-exp rator rand) \\
 - (letrec-exp p-name b-var p-body letrec-body) \\
@@ -79,39 +80,52 @@
 \subsection*{Semántica}
 
 \begin{lstlisting}[mathescape]
-(value-of (const-exp n) $\rho$) = (num-val n)
+value-of (const-exp n) $\rho$) = (num-val n) 
 
-(value-of (var-exp var) $\rho$) = (apply-$\rho$ $\rho$ var)
+(value-of (var-exp $var$) $\rho$) = $\rho$($var$)
 
-(value-of (diff-exp exp1 exp2) $\rho$)
- = (num-val
-    (- (expval->num (value-of exp1 $\rho$))
-       (expval->num (value-of exp2 $\rho$))))
+(value-of (diff-exp $exp_1$ $exp_2$) $\rho$) =
+(num-val (- (expval$\to$num (value-of $exp_1$ $\rho$))
+            (expval$\to$num (value-of $exp_2$ $\rho$))))
 
-(value-of (zero?-exp exp1) $\rho$)
- = (if (equal? 0 (expval->num (value-of exp1 $\rho$)))
-       (bool-val #t)
-       (bool-val #f))
+(value-of (zero?-exp $exp_1$) $\rho$) = 
+(let ([$val_1$ (value-of $exp_1$ $\rho$)])
+  (bool-val (= 0 (expval$\to$num $val_1$))))
 
-(value-of (if-exp exp1 exp2 exp3) $\rho$)
- = (if (expval->bool (value-of exp1 $\rho$))
-       (value-of exp2 $\rho$)
-       (value-of exp3 $\rho$))
+(value-of (if-exp $exp_1$ $exp_2$ $exp_3$) $\rho$) = 
+(if (expval$\to$bool (value-of $exp_1$ $\rho$))
+  (value-of $exp_2$ $\rho$)
+  (value-of $exp_3$ $\rho$))
 
-(value-of (let-exp var exp1 body) $\rho$)
- = (value-of body (extend-env var (value-of exp1 $\rho$) $\rho$))
+(value-of (let-exp $var$ $exp_1$ $body$) $\rho$) = 
+(let ([$val_1$ (value-of $exp_1$ $\rho$)])
+  (value-of $body$ [$var$ = $val_1$ ]$\rho$))
+  
+(value-of (proc-exp $var$ $body$) $\rho$) = 
+(proc-val (procedure $var$ $body$ $\rho$))
 
-(value-of (proc-exp var body) $\rho$)
- = (proc-val (procedure var body $\rho$))
 
-(value-of (call-exp rator rand) $\rho$)
- = (let ([proc (expval->proc (value-of rator $\rho$))]
-         [arg (value-of rand $\rho$)])
-     (apply-procedure proc arg))
-     
-(value-of (letrec-exp proc-name bound-var proc-body letrec-body) $\rho$)
- = (value-of letrec-body (extend-env-rec proc-name bound-var proc-body $\rho$))
 
+
+(value-of (call-exp op-exp arg-exp) $\rho$) = 
+(let ([proc (expval$\to$proc (value-of op-exp $\rho$))]
+      [arg (value-of arg-exp $\rho$)])
+  (apply-procedure proc arg))
+  
+donde:
+(apply-procedure (procedure $var$ $body$ $\rho$) val) =
+(value-of $body$ [$var$ = val]$\rho$)
+
+(value-of (letrec-exp p-name b-$var$ p-$body$ letrec-$body$) $\rho$) = 
+(value-of letrec-$body$ [p-name = b-$var$ $\mapsto$ p-$body$]$\rho$)
+
+donde:
+Si $\rho_1$ = [p-name = b-$var$ $\mapsto$ p-$body$]$\rho$, entonces:
+si $var$ = p-name
+(apply-env $\rho_1$ $var$) =
+(proc-val (procedure b-$var$ p-$body$ $\rho_1$))
+si $var$ $\neq$ p-name .
+(apply-env $\rho$1 $var$) = (apply-env $\rho$ $var$)
 
 
 
