@@ -53,6 +53,24 @@
   (reg-conc reg-alphabetic
             (reg-kleene reg-nat)))
 
+(define reg-char-and-digits
+  (reg-conc reg-id
+            (reg-kleene reg-id)))
+  
+(define reg-almost-id
+  (reg-union
+   reg-char-and-digits
+   (reg-conc reg-alphabetic reg-char-and-digits)))
+
+(define (lex-almost-id src lexeme beg end)
+  (error 'letrec-parse
+         (string-append
+          "malformed input at line ~v column ~v: unexpected ~v\n"
+          "  remember that identifiers are characters followed by 0 or more digits only")
+         (pos-line beg)
+         (pos-col beg)
+         lexeme))
+
 (define (lex-identifier)
   (lambda (src lexeme beg end)
     (token 'identifier (string->symbol lexeme) beg end)))
@@ -66,6 +84,36 @@
 (define (lex-terminal name)
   (lambda (src lexeme beg end)
     (token name #f beg end)))
+
+(define reg-delims
+  (char-set-comp "(" ")"
+                 #\space #\newline #\return #\tab
+                 "-" "="))
+
+(define reg-kw-delim
+  (reg-conc (reg-union "zero?" "if" "then"
+                       "else" "let" "in"
+                       "proc" "letrec")
+            reg-delims))   
+
+(define (lex-kw-delim src lexeme beg end)
+  (error (format "Se esperaba un delimitador después del ~a"
+                 (substring lexeme 0 (sub1 (string-length lexeme))))
+         beg end))
+
+(define reg-nat-delim
+  (reg-conc reg-nat reg-delims))
+
+(define (lex-nat-delim src lexeme beg end)
+  (error (format "Se esperaba un delimitador después de un número")
+         beg end))
+
+(define reg-id-delim
+  (reg-conc reg-id reg-delims))
+
+(define (lex-id-delim src lexeme beg end)
+  (error (format "Se esperaba un delimitador después de una variable")
+         beg end))
 
 (define lex-letrec
   (make-lexer
@@ -85,10 +133,12 @@
    (lex-rule "in" (lex-terminal 'in))
    (lex-rule "proc" (lex-terminal 'proc))
    (lex-rule "letrec" (lex-terminal 'letrec))
+   (lex-rule reg-kw-delim lex-kw-delim)
+   (lex-rule reg-nat-delim lex-nat-delim)
    (lex-rule reg-id (lex-identifier))
    ;; common errors
    (lex-rule reg-almost-float lex-almost-float)
-   ))
+   (lex-rule reg-almost-id lex-almost-id)))
 
 (define (lex-letrec* src)
   (define t (lex-letrec src))
@@ -179,6 +229,15 @@
                     (identifier double)
                     (number 6)
                     (cparen #f)))
-                  
-    
-                  )))
+    (check-exn exn:fail?
+               (lambda () (lex ".5")))
+    (check-exn exn:fail?
+               (lambda () (lex "1.")))
+    (check-exn exn:fail?
+               (lambda () (lex "-(1 .5)")))
+    (check-exn exn:fail?
+               (lambda () (lex "letx = 1 in -(x 1)")))
+    (check-exn exn:fail?
+               (lambda () (lex "let 3b = 1 in -(x 1)")))
+    (check-exn exn:fail?
+               (lambda () (lex "let b3b3 = 1 in -(x 1)"))))))
