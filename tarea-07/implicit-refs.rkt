@@ -23,12 +23,14 @@ Statement  := Identifier = Expression
            := {{Statement}*(;) }
            := if Expression Statement Statement
            := while Expression Statement
-           := var {Identifier}*(,)} ; Statement
+           := var {Identifier}*(,) ; Statement
            := skip
 
 Expression := Number
-           := -(Expression , Expression)
+           := (- Expression Expression)
+           := (+ Expression Expression)
            := zero? (Expression)
+           := !(Expression)
            := if Expression then Expression else Expression
            := Identifier
            := let Identifier = Expression in Expression
@@ -54,7 +56,9 @@ Statement:
 Expression:
 - (const-exp num)
 - (diff-exp exp1 exp2)
+- (sum-exp exp1 exp2)
 - (zero?-exp exp1)
+- (neg-exp exp1)
 - (if-exp exp1 exp2 exp3)
 - (var-exp var)
 - (let-exp var exp1 body)
@@ -106,7 +110,13 @@ Expression:
 (struct diff-exp (exp1 exp2)
   #:transparent)
 
+(struct sum-exp (exp1 exp2)
+  #:transparent)
+
 (struct zero?-exp (exp1)
+  #:transparent)
+
+(struct neg-exp (exp1)
   #:transparent)
 
 (struct if-exp (exp1 exp2 exp3)
@@ -342,6 +352,7 @@ where:
             [val1 (an-answer-val aws)]
             [s1 (an-answer-store aws)])
        (print val1)
+       (display "\n")
        s1)]
     [(pair-stmt? stmt)
      (let* ([stmt1 (pair-stmt-stmt1 stmt)]
@@ -454,6 +465,12 @@ where:
     [(var-exp? exp)
      (let ([var (var-exp-var exp)])
        (an-answer (list-ref s (apply-env env var)) s))]
+    [(sum-exp? exp)
+     (let ([exp1 (sum-exp-exp1 exp)]
+           [exp2 (sum-exp-exp2 exp)])
+       (value-of (diff-exp exp1
+                           (diff-exp (const-exp 0)
+                                     exp2)) env s))]
     [(diff-exp? exp)
      (let* ([exp1 (diff-exp-exp1 exp)]
             [exp2 (diff-exp-exp2 exp)]
@@ -474,6 +491,12 @@ where:
        (if (equal? 0 (expval->num val1))
            (an-answer (bool-val #t) store1)
            (an-answer (bool-val #f) store1)))]
+    [(neg-exp? exp)
+     (let* ([exp1 (neg-exp-exp1 exp)]
+            [aws (value-of exp1 env s)]
+            [val1 (an-answer-val aws)]
+            [s1 (an-answer-store aws)])
+       (an-answer (bool-val (not (bool-val-bool val1))) s1))]
     [(if-exp? exp)
      (let* ([exp1 (if-exp-exp1 exp)]
             [exp2 (if-exp-exp2 exp)]
@@ -569,18 +592,86 @@ where:
          rackunit/text-ui)
 
 (initialize-store!)
-(define s the-store)
-(define e (empty-env))
-(define m (let-exp 'x (const-exp 3)
-                   (let-exp 'f (proc-exp 'y
-                                         (assign-exp 'x (var-exp 'y)))
-                            (call-exp (var-exp 'f) (const-exp 10)))))
 
-(result-of (declr-stmt
-            (list 'x 'y 'z 'w)
-            (pair-stmt
-             (assign-stmt 'x (const-exp 3))
-             (list (assign-stmt 'y (const-exp 5))
-                   (assign-stmt 'z (const-exp 8)))))
-            e s)
+(define-test-suite pruebas
 
+  #|
+
+var sum, n;
+{
+  n = 10;
+  sum = 0;
+  while neg (zero?(n))
+  {
+    sum = (+ sum n);
+    n   = (- n 1);
+  }
+  print(sum);
+}
+
+|#
+  (display "test sum:\n")
+  (check-equal? (result-of (declr-stmt (list 'sum 'n)
+                                       (pair-stmt (assign-stmt 'n (const-exp 10))
+                                                  (list (assign-stmt 'sum (const-exp 0))
+                                                        (loop-stmt (neg-exp (zero?-exp (var-exp 'n)))
+                                                                   (pair-stmt (skip-stmt)
+                                                                              (list (assign-stmt 'sum (sum-exp (var-exp 'sum) (var-exp 'n)))
+                                                                                    (assign-stmt 'n (diff-exp (var-exp 'n) (const-exp 1))))))
+                                                        (print-stmt (var-exp 'sum)))))
+                           (empty-env) '())
+                (list (num-val 55) (num-val 0)))
+
+  #|
+
+var x, y, t;
+{
+    {
+      x = 3;
+      y = 5
+    };
+t = x;
+x = y;
+y = t;
+print(x);
+print(y);
+}
+
+|#
+  (display "\ntest swap by value:\n")
+  (check-equal? (result-of (declr-stmt
+                            (list 'x 'y 't)
+                            (pair-stmt
+                             (pair-stmt (skip-stmt)
+                                        (list (assign-stmt 'x (const-exp 3))
+                                              (assign-stmt 'y (const-exp 5))))
+                             (list (assign-stmt 't (var-exp 'x))
+                                   (assign-stmt 'x (var-exp 'y))
+                                   (assign-stmt 'y (var-exp 't))
+                                   (print-stmt (var-exp 'x))
+                                   (print-stmt (var-exp 'y)))))      
+                           (empty-env) the-store)
+                (list
+                 (num-val 5)   ; x
+                 (num-val 3)   ; y
+                 (num-val 3))) ; t
+
+  #|
+
+if (zero?(4))
+  while (zero?(0))
+    var x;
+    x=0;
+  print 1;
+
+|#
+  (display "\ntest conditonal evaluation\n")
+  (check-equal? (result-of (cond-stmt (zero?-exp (const-exp 4))
+                                      (loop-stmt (zero?-exp (const-exp 0))
+                                                 (declr-stmt (list 'x)
+                                                             (assign-stmt 'x (const-exp 0))))
+                                      (print-stmt (const-exp 1)))
+                           (empty-env) '())
+                '()))
+
+(run-tests pruebas 'verbose)
