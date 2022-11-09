@@ -23,7 +23,7 @@ Statement  := Identifier = Expression
            := {{Statement}*(;) }
            := if Expression Statement Statement
            := while Expression Statement
-           := var {Identifier}*(,) ; Statement
+           := var {Identifier}*(,)} ; Statement
 
 Expression := Number
            := -(Expression , Expression)
@@ -38,9 +38,16 @@ Expression := Number
 SINTAXIS ABSTRACTA
 =================
 
-Program: TODO
+Program:
+- (a-program stmt)
 
-Statement: TODO
+Statement:
+- (assign-stmt var exp1)
+- (print-stmt exp1)
+- (pair-stmt stmt1 stmts)
+- (cond-stmt exp1 stmt1 stmt2)
+- (loop-stmt exp1 stmt1)
+- (declr-stmt vars stmt1)
 
 Expression:
 - (const-exp num)
@@ -54,6 +61,29 @@ Expression:
 - (assign-exp (var exp1)
 
 |#
+
+;; Program
+(struct a-program (stmt)
+  #:transparent)
+
+;; Statement
+(struct assign-stmt (var exp1)
+  #:transparent)
+
+(struct print-stmt (exp1)
+  #:transparent)
+
+(struct pair-stmt (stmt1 stmts)
+  #:transparent)
+
+(struct cond-stmt (exp1 stmt1 stmt2)
+  #:transparent)
+
+(struct loop-stmt (exp1 stmt1)
+  #:transparent)
+
+(struct declr-stmt (vars stmt1)
+  #:transparent)
 
 ;; Expression
 (struct const-exp (num)
