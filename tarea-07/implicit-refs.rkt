@@ -33,7 +33,6 @@ Expression := Number
            := let Identifier = Expression in Expression
            := proc (Identifier) Expression
            := (Expression Expression)
-           := letrec Identifier (Identifier) = Expression in Expression
            := set Identifier = Expression
 
 SINTAXIS ABSTRACTA
@@ -52,7 +51,6 @@ Expression:
 - (let-exp var exp1 body)
 - (proc-exp var body)
 - (call-exp rator rand)
-- (letrec-exp p-name b-var p-body letrec-body)
 - (assign-exp (var exp1)
 
 |#
@@ -82,9 +80,6 @@ Expression:
 (struct call-exp (rator rand)
   #:transparent)
 
-(struct letrec-exp (p-name b-var p-body letrec-body)
-  #:transparent)
-
 (struct newref-exp (exp1)
   #:transparent)
 
@@ -106,8 +101,6 @@ Expression:
       (let-exp? x)
       (proc-exp? x)
       (call-exp? x)
-      (letrec-exp? x)
-      (letrec-exp? x)
       (newref-exp? x)
       (deref-exp? x)
       (setref-exp? x)
@@ -294,12 +287,6 @@ where:
 (val1, s1) = (value-of rator env s)
 (val2, s2) = (value-of rand env s1)
 
-(value-of
-  (letrec-exp p-name b-var p-body letrec-body) env s))
-=
-(value-of
-  (letrec-body (extend-env-rec p-name b-var p-body env) s)
-
 (value-of (newref-exp exp1) env s) = ((ref-val loc), [loc=val]s1)
 where:
 (value-of exp1 env s) = (val, s1) and
@@ -327,7 +314,7 @@ where:
        (an-answer (num-val n) s))]
     [(var-exp? exp)
      (let ([var (var-exp-var exp)])
-       (an-answer (apply-env env var) s))]
+       (an-answer (list-ref s (apply-env env var)) s))]
     [(diff-exp? exp)
      (let* ([exp1 (diff-exp-exp1 exp)]
             [exp2 (diff-exp-exp2 exp)]
@@ -359,13 +346,13 @@ where:
            (value-of exp2 env store1)
            (value-of exp3 env store1)))]
     [(let-exp? exp)
-     (let* ([var (let-exp-var exp)]
+     (let* ([var  (let-exp-var exp)]
             [exp1 (let-exp-exp1 exp)]
             [body (let-exp-body exp)]
             [asw1 (value-of exp1 env s)]
             [val1 (an-answer-val asw1)]
-            [store1 (an-answer-store asw1)])
-       (value-of body (extend-env var val1 env) store1))]
+            [s1 (an-answer-store asw1)])
+       (value-of body (extend-env var (length s1) env) (append s1 (list val1))))]
     [(proc-exp? exp)
      (let ([var (proc-exp-var exp)]
            [body (proc-exp-body exp)])
@@ -383,25 +370,19 @@ where:
               [store2 (an-answer-store asw2)]
               [arg varg])
          (apply-procedure proc arg store2)))]
-    [(letrec-exp? exp)
-     (let ([p-name (letrec-exp-p-body exp)]
-           [b-var (letrec-exp-b-var exp)]
-           [p-body (letrec-exp-p-body exp)]
-           [letrec-body (letrec-exp-letrec-body exp)])
-       (value-of letrec-body (extend-env-rec p-name b-var p-body env) s))]
     [(newref-exp? exp)
      (let* ([exp1 (newref-exp-exp1 exp)]
             [next-ref (length s)]
             [asw1 (value-of exp1 env s) ]
             [val1 (an-answer-val asw1)]
-            [s1 (an-answer-store asw1)])
+            [s1   (an-answer-store asw1)])
        (an-answer (ref-val next-ref) (append s (list val1))))]
     [(deref-exp? exp)
      (let* ([exp1 (deref-exp-exp1 exp)]
             [asw1 (value-of exp1 env s)]
             [val1 (an-answer-val asw1)]
-            [s1 (an-answer-store asw1)]
-            [loc (expval->num val1)])
+            [s1   (an-answer-store asw1)]
+            [loc  (expval->num val1)])
        (if (or (empty? s1)
                (> 0 loc)
                (<= (length s1) loc))
@@ -412,16 +393,23 @@ where:
             [exp2 (setref-exp-exp2 exp)]
             [asw1 (value-of exp1 env s)]
             [val1 (an-answer-val asw1)]
-            [s1 (an-answer-store asw1)]
+            [s1   (an-answer-store asw1)]
             [asw2 (value-of exp2 env s1)]
             [val2 (an-answer-val asw2)]
-            [s2 (an-answer-store asw2)]
-            [loc (expval->num val1)])
+            [s2   (an-answer-store asw2)]
+            [loc  (expval->num val1)])
        (if (or (empty? s2)
                (< 0 loc)
                (<= (length s2) loc))
            (error 'setref-exp "location not found: ~e" loc)
            (an-answer val2 (list-set s2 loc val2))))]
+    [(assign-exp? exp)
+     (let* ([var  (assign-exp-var exp)]
+            [exp1 (assign-exp-exp1 exp)]
+            [aws1 (value-of exp1 env s)]
+            [val1 (an-answer-val aws1)]
+            [s1   (an-answer-store aws1)])
+       (an-answer val1 (list-set s1 (apply-env env var) val1)))]
     [else
      ((error 'value-of "no es una expresión: ~e" exp))]))
 
@@ -440,3 +428,11 @@ where:
 
 (require rackunit
          rackunit/text-ui)
+
+(initialize-store!)
+(define s the-store)
+(define e (empty-env))
+(define m (let-exp 'x (const-exp 3)
+                     (let-exp 'f (proc-exp 'y
+                                           (assign-exp 'x (var-exp 'y)))
+                              (call-exp (var-exp 'f) (const-exp 10)))))
