@@ -24,6 +24,7 @@ Statement  := Identifier = Expression
            := if Expression Statement Statement
            := while Expression Statement
            := var {Identifier}*(,)} ; Statement
+           := skip
 
 Expression := Number
            := -(Expression , Expression)
@@ -48,6 +49,7 @@ Statement:
 - (cond-stmt exp1 stmt1 stmt2)
 - (loop-stmt exp1 stmt1)
 - (declr-stmt vars stmt1)
+- (skip-stmt)
 
 Expression:
 - (const-exp num)
@@ -84,6 +86,18 @@ Expression:
 
 (struct declr-stmt (vars stmt1)
   #:transparent)
+
+(struct skip-stmt ()
+  #:transparent)
+
+(define (statement? x)
+  (or (assign-stmt? x)
+      (print-stmt? x)
+      (pair-stmt? x)
+      (cond-stmt? x)
+      (loop-stmt? x)
+      (declr-stmt? x)
+      (skip-stmt? x)))
 
 ;; Expression
 (struct const-exp (num)
@@ -275,6 +289,101 @@ DenVal = Ref(ExpVal)
 
 ESPECIFICACIONES SEMÁNTICAS
 
+STATEMENTS
+=================
+
+(result-of (assign-stmt var exp1) env s) = s1
+where:
+(value-of (assign-exp var exp1) env s) = (val1, s1)
+
+(result-of (print-stmt exp1) env s) = s1
+where:
+(value-of exp1 env s) = (val1, s1)
+
+(result-of (pair-stmt stmt1 stmts) env s) =
+(if (empty? stmts)
+    (result-of stmt1 env s)
+    (let ([s1 (result-of stmt1 env s)])
+       (result-of (pair-stmt (first stmts) (rest stmts)) env s1)))
+
+(result-of (cond-stmt exp1 stmt1 stmt2) env s) =
+(let* ([aws1 (value-of exp1 env s)]
+       [val1 (an-answer-val aws1)]
+       [s1   (an-answer-store aws1)]
+       [bval (bool-val-bool val1)])
+  (if bval
+      (result-of stmt1)
+      (result-of stmt2)))
+
+(result-of (loop-stmt exp1 stmt1) env s) =
+(result-of (cond-stmt exp1
+                      (pair-stmt stmt1 (loop-stmt exp1 stmt1))
+                      (skip-stmt))
+
+(result-of (declr-stmt vars stmt1) env s) =
+(if (empty? (rest vars))
+    (result-of stmt1 [(first vars)=-1)]env s)
+    (result-of (declr-stmt (rest vars) stmt1) [(first vars)=-1)]env s))
+
+(result-of (skip-stmt) env s) = s
+
+|#
+
+(define (result-of stmt env s)
+  (cond
+    [(skip-stmt? stmt) s]
+    [(assign-stmt? stmt)
+     (let ([var (assign-stmt-var stmt)]
+           [exp1 (assign-stmt-exp1 stmt)])
+       (an-answer-store (value-of (assign-exp var exp1) env s)))]
+    [(print-stmt? stmt)
+     (let* ([exp1 (print-stmt-exp1 stmt)]
+            [aws (value-of exp1 env s)]
+            [val1 (an-answer-val aws)]
+            [s1 (an-answer-store aws)])
+       (print val1)
+       s1)]
+    [(pair-stmt? stmt)
+     (let* ([stmt1 (pair-stmt-stmt1 stmt)]
+            [stmts (pair-stmt-stmts stmt)]
+            [s1 (result-of stmt1 env s)])
+       (if (empty? stmts)
+           s1
+           (result-of (pair-stmt (first stmts) (rest stmts)) env s1)))]
+    [(cond-stmt? stmt)
+     (let* ([exp1  (cond-stmt-exp1 stmt)]
+            [stmt1 (cond-stmt-stmt1 stmt)]
+            [stmt2 (cond-stmt-stmt2 stmt)]
+            [aws1 (value-of exp1 env s)]
+            [val1 (an-answer-val aws1)]
+            [s1   (an-answer-store aws1)]
+            [bval (bool-val-bool val1)])
+       (if bval
+           (result-of stmt1 env s1)
+           (result-of stmt2 env s1)))]
+    [(loop-stmt? stmt)
+     (let* ([exp1  (loop-stmt-exp1 stmt)]
+            [stmt1 (loop-stmt-stmt1 stmt)])
+       (result-of (cond-stmt exp1
+                             (pair-stmt stmt1 (list (loop-stmt exp1 stmt1)))
+                             (skip-stmt)) env s))]
+    [(declr-stmt? stmt)
+     (let ([vars  (declr-stmt-vars stmt)]
+           [stmt1 (declr-stmt-stmt1 stmt)]
+           [loc   (length s)])
+       (if (empty? (rest vars))
+           (result-of stmt1 (extend-env (first vars) loc env) (append s (list 'unspecified)))
+           (result-of (declr-stmt (rest vars) stmt1) (extend-env (first vars) loc env) (append s (list 'unspecified)))))]
+    ))
+       
+
+#|
+
+ESPECIFICACIONES SEMÁNTICAS
+
+EXPRESIONES
+=================
+
 (value-of (const-exp n) env s) = ((num-val n), s)
  
 (value-of (var-exp var) env s) = (s(env(var)), s)
@@ -463,6 +572,15 @@ where:
 (define s the-store)
 (define e (empty-env))
 (define m (let-exp 'x (const-exp 3)
-                     (let-exp 'f (proc-exp 'y
-                                           (assign-exp 'x (var-exp 'y)))
-                              (call-exp (var-exp 'f) (const-exp 10)))))
+                   (let-exp 'f (proc-exp 'y
+                                         (assign-exp 'x (var-exp 'y)))
+                            (call-exp (var-exp 'f) (const-exp 10)))))
+
+(result-of (declr-stmt
+            (list 'x 'y 'z 'w)
+            (pair-stmt
+             (assign-stmt 'x (const-exp 3))
+             (list (assign-stmt 'y (const-exp 5))
+                   (assign-stmt 'z (const-exp 8)))))
+            e s)
+
